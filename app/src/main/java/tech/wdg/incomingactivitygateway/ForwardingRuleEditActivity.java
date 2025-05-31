@@ -1,13 +1,18 @@
 package tech.wdg.incomingactivitygateway;
 
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +22,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
@@ -27,6 +34,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -44,6 +52,15 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private TextInputEditText retriesInput;
     private MaterialSwitch ignoreSslSwitch;
     private MaterialSwitch chunkedModeSwitch;
+
+    // Activity type selection
+    private ChipGroup activityTypeChipGroup;
+    private Chip chipTypeSms;
+    private Chip chipTypePush;
+
+    // App selection (for push notifications)
+    private AutoCompleteTextView appSelectorDropdown;
+    private LinearLayout appSelectorContainer;
 
     // Template fields - both key and value
     private TextInputEditText templateFromKeyInput;
@@ -63,6 +80,28 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private LinearLayout customTemplateFieldsContainer;
     private List<TemplateFieldPair> customTemplateFields;
 
+    // App data for dropdown
+    private List<AppInfo> installedApps;
+
+    // Template variables info
+    private TextView templateVariablesInfo;
+
+    // Inner class for app information
+    private static class AppInfo {
+        String name;
+        String packageName;
+
+        AppInfo(String name, String packageName) {
+            this.name = name;
+            this.packageName = packageName;
+        }
+
+        @Override
+        public String toString() {
+            return name + " (" + packageName + ")";
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,6 +115,8 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
         setupToolbar();
         initializeViews();
+        loadInstalledApps();
+        setupActivityTypeHandling();
         loadConfigData();
         setupClickListeners();
     }
@@ -96,6 +137,15 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         retriesInput = findViewById(R.id.input_retries);
         ignoreSslSwitch = findViewById(R.id.switch_ignore_ssl);
         chunkedModeSwitch = findViewById(R.id.switch_chunked_mode);
+
+        // Activity type selection
+        activityTypeChipGroup = findViewById(R.id.activity_type_chip_group);
+        chipTypeSms = findViewById(R.id.chip_type_sms);
+        chipTypePush = findViewById(R.id.chip_type_push);
+
+        // App selection (for push notifications)
+        appSelectorDropdown = findViewById(R.id.app_selector_dropdown);
+        appSelectorContainer = findViewById(R.id.app_selector_container);
 
         // Template fields - both key and value
         templateFromKeyInput = findViewById(R.id.input_template_from_key);
@@ -122,6 +172,9 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Add custom template field button
         MaterialButton addTemplateFieldButton = findViewById(R.id.btn_add_template_field);
         addTemplateFieldButton.setOnClickListener(v -> addCustomTemplateField("", ""));
+
+        // Template variables info
+        templateVariablesInfo = findViewById(R.id.template_variables_info);
     }
 
     private void loadConfigData() {
@@ -154,18 +207,37 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         retriesInput.setText(String.valueOf(ForwardingConfig.getDefaultRetriesNumber()));
         chunkedModeSwitch.setChecked(true);
 
-        // Default template values - both keys and values
-        templateFromKeyInput.setText("from");
-        templateFromValueInput.setText("%from%");
-        templateTextKeyInput.setText("text");
-        templateTextValueInput.setText("%text%");
-        templateTimestampKeyInput.setText("sentStamp");
-        templateTimestampValueInput.setText("%sentStamp%");
-        templateSimKeyInput.setText("sim");
-        templateSimValueInput.setText("%sim%");
+        // Set default template values based on activity type
+        setDefaultTemplateValues();
 
         // Add default header
         addHeaderField("User-Agent", "SMS Forwarder App");
+    }
+
+    private void setDefaultTemplateValues() {
+        boolean isPush = chipTypePush.isChecked();
+
+        if (isPush) {
+            // Default template values for push notifications
+            templateFromKeyInput.setText("app");
+            templateFromValueInput.setText("%package%");
+            templateTextKeyInput.setText("message");
+            templateTextValueInput.setText("%text%");
+            templateTimestampKeyInput.setText("timestamp");
+            templateTimestampValueInput.setText("%sentStamp%");
+            templateSimKeyInput.setText("title");
+            templateSimValueInput.setText("%title%");
+        } else {
+            // Default template values for SMS
+            templateFromKeyInput.setText("from");
+            templateFromValueInput.setText("%from%");
+            templateTextKeyInput.setText("text");
+            templateTextValueInput.setText("%text%");
+            templateTimestampKeyInput.setText("sentStamp");
+            templateTimestampValueInput.setText("%sentStamp%");
+            templateSimKeyInput.setText("sim");
+            templateSimValueInput.setText("%sim%");
+        }
     }
 
     private void populateFields() {
@@ -174,6 +246,17 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         retriesInput.setText(String.valueOf(config.getRetriesNumber()));
         ignoreSslSwitch.setChecked(config.getIgnoreSsl());
         chunkedModeSwitch.setChecked(config.getChunkedMode());
+
+        // Set activity type
+        if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+            chipTypePush.setChecked(true);
+            appSelectorContainer.setVisibility(View.VISIBLE);
+            updateUIForPushNotifications();
+        } else {
+            chipTypeSms.setChecked(true);
+            appSelectorContainer.setVisibility(View.GONE);
+            updateUIForSMS();
+        }
 
         // Parse existing template
         parseExistingTemplate();
@@ -305,6 +388,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         config.setRetriesNumber(Integer.parseInt(retriesInput.getText().toString()));
         config.setIgnoreSsl(ignoreSslSwitch.isChecked());
         config.setChunkedMode(chunkedModeSwitch.isChecked());
+
+        // Set activity type based on selected chip
+        if (chipTypePush.isChecked()) {
+            config.setActivityType(ForwardingConfig.ActivityType.PUSH);
+        } else {
+            config.setActivityType(ForwardingConfig.ActivityType.SMS);
+        }
 
         // Build JSON template
         config.setTemplate(buildJsonTemplate());
@@ -480,6 +570,104 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             this.view = view;
             this.keyInput = keyInput;
             this.valueInput = valueInput;
+        }
+    }
+
+    private void loadInstalledApps() {
+        installedApps = new ArrayList<>();
+        PackageManager pm = getPackageManager();
+        List<ApplicationInfo> apps = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+
+        for (ApplicationInfo app : apps) {
+            // Skip system apps that don't typically send notifications
+            if ((app.flags & ApplicationInfo.FLAG_SYSTEM) == 0 || isNotificationApp(app.packageName)) {
+                String appName = pm.getApplicationLabel(app).toString();
+                installedApps.add(new AppInfo(appName, app.packageName));
+            }
+        }
+
+        // Sort apps alphabetically
+        Collections.sort(installedApps, (a, b) -> a.name.compareToIgnoreCase(b.name));
+
+        // Set up the dropdown adapter
+        ArrayAdapter<AppInfo> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line,
+                installedApps);
+        appSelectorDropdown.setAdapter(adapter);
+
+        // Handle app selection
+        appSelectorDropdown.setOnItemClickListener((parent, view, position, id) -> {
+            AppInfo selectedApp = (AppInfo) parent.getItemAtPosition(position);
+            senderInput.setText(selectedApp.packageName);
+        });
+    }
+
+    private boolean isNotificationApp(String packageName) {
+        // Common apps that send notifications
+        return packageName.contains("whatsapp") ||
+                packageName.contains("telegram") ||
+                packageName.contains("gmail") ||
+                packageName.contains("outlook") ||
+                packageName.contains("slack") ||
+                packageName.contains("discord") ||
+                packageName.contains("twitter") ||
+                packageName.contains("instagram") ||
+                packageName.contains("facebook") ||
+                packageName.contains("messenger") ||
+                packageName.contains("signal") ||
+                packageName.contains("viber");
+    }
+
+    private void setupActivityTypeHandling() {
+        activityTypeChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.contains(R.id.chip_type_push)) {
+                // Show app selector for push notifications
+                appSelectorContainer.setVisibility(View.VISIBLE);
+                updateUIForPushNotifications();
+            } else {
+                // Hide app selector for SMS
+                appSelectorContainer.setVisibility(View.GONE);
+                updateUIForSMS();
+            }
+        });
+    }
+
+    private void updateUIForPushNotifications() {
+        // Update sender field hint
+        TextInputLayout senderLayout = (TextInputLayout) senderInput.getParent().getParent();
+        senderLayout.setHint("App package name");
+        senderLayout.setHelperText("Enter app package name or select from dropdown, use * for all apps");
+
+        // Update template variables info
+        updateTemplateVariablesInfo(true);
+
+        // Update template defaults if this is a new rule
+        if (isNew) {
+            setDefaultTemplateValues();
+        }
+    }
+
+    private void updateUIForSMS() {
+        // Update sender field hint
+        TextInputLayout senderLayout = (TextInputLayout) senderInput.getParent().getParent();
+        senderLayout.setHint("Phone number");
+        senderLayout.setHelperText("Enter phone number or use * for all numbers");
+
+        // Update template variables info
+        updateTemplateVariablesInfo(false);
+
+        // Update template defaults if this is a new rule
+        if (isNew) {
+            setDefaultTemplateValues();
+        }
+    }
+
+    private void updateTemplateVariablesInfo(boolean isPush) {
+        if (templateVariablesInfo != null) {
+            if (isPush) {
+                templateVariablesInfo.setText("Push Notifications: %package%, %title%, %content%, %text%, %sentStamp%");
+            } else {
+                templateVariablesInfo.setText("SMS Messages: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%");
+            }
         }
     }
 }

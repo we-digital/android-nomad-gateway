@@ -91,13 +91,93 @@
 
                     </LinearLayout>
 
+                    <!-- Activity Type Selection -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Activity Type"
+                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                            android:textColor="?attr/colorOnSurface"
+                            android:layout_marginBottom="8dp" />
+
+                        <com.google.android.material.chip.ChipGroup
+                            android:id="@+id/activity_type_chip_group"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:singleSelection="true"
+                            app:selectionRequired="true">
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_type_sms"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="SMS Messages"
+                                app:chipIcon="@drawable/ic_sms"
+                                android:checked="true"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_type_push"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Push Notifications"
+                                app:chipIcon="@drawable/ic_notifications"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                        </com.google.android.material.chip.ChipGroup>
+
+                    </LinearLayout>
+
+                    <!-- App Selector for Push Notifications -->
+                    <LinearLayout
+                        android:id="@+id/app_selector_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="20dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Select App (Optional)"
+                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                            android:textColor="?attr/colorOnSurface"
+                            android:layout_marginBottom="8dp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:hint="Choose an app or enter package name"
+                            app:boxCornerRadiusTopStart="12dp"
+                            app:boxCornerRadiusTopEnd="12dp"
+                            app:boxCornerRadiusBottomStart="12dp"
+                            app:boxCornerRadiusBottomEnd="12dp">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/app_selector_dropdown"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                    </LinearLayout>
+
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        android:hint="Sender (phone number or text)"
-                        app:helperText="Use * for any sender, or specific number/text"
+                        android:hint="Source identifier"
+                        app:helperText="SMS: phone number, Push: app package name, or * for any"
                         app:helperTextEnabled="true"
                         app:startIconDrawable="@drawable/ic_edit"
                         app:boxCornerRadiusTopStart="12dp"
@@ -212,9 +292,10 @@
                                 android:layout_marginBottom="@dimen/spacing_tiny" />
 
                             <TextView
+                                android:id="@+id/template_variables_info"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="• %from% - Sender phone number\n• %text% - SMS message content\n• %sentStamp% - Message timestamp\n• %receivedStamp% - Received timestamp\n• %sim% - SIM card identifier"
+                                android:text="SMS: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%\nNotifications: %package%, %title%, %content%, %sentStamp%"
                                 android:textAppearance="@style/TextAppearance.App.BodyMedium"
                                 android:textColor="?attr/colorOnPrimaryContainer"
                                 android:typeface="monospace"

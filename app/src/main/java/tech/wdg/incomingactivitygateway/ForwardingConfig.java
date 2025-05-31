@@ -16,16 +16,43 @@ import java.util.regex.Matcher;
 public class ForwardingConfig {
     final private Context context;
 
+    // Activity types
+    public enum ActivityType {
+        SMS("sms"),
+        PUSH("push");
+
+        private final String value;
+
+        ActivityType(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+
+        public static ActivityType fromString(String value) {
+            for (ActivityType type : ActivityType.values()) {
+                if (type.value.equals(value)) {
+                    return type;
+                }
+            }
+            return SMS; // Default fallback
+        }
+    }
+
     private static final String KEY_KEY = "key";
     private static final String KEY_SENDER = "sender";
     private static final String KEY_URL = "url";
     private static final String KEY_SIM_SLOT = "sim_slot";
     private static final String KEY_TEMPLATE = "template";
     private static final String KEY_HEADERS = "headers";
-    private static final String KEY_RETRIES_NUMBER = "retries_number";
-    private static final String KEY_IGNORE_SSL = "ignore_ssl";
-    private static final String KEY_CHUNKED_MODE = "chunked_mode";
-    private static final String KEY_IS_SMS_ENABLED = "is_sms_enabled";
+    private static final String KEY_RETRIES_NUMBER = "retriesNumber";
+    private static final String KEY_IGNORE_SSL = "ignoreSsl";
+    private static final String KEY_CHUNKED_MODE = "chunkedMode";
+    private static final String KEY_IS_SMS_ENABLED = "isSmsEnabled";
+    private static final String KEY_IS_NOTIFICATION_ENABLED = "isNotificationEnabled";
+    private static final String KEY_ACTIVITY_TYPE = "activityType";
 
     public long id;
     public boolean isOn = true;
@@ -33,13 +60,15 @@ public class ForwardingConfig {
     private String key;
     public String sender;
     public String url;
-    private int simSlot = 0; // 0 means any
-    private String template;
+    public int simSlot = 0; // 0 means any
+    public String template;
     public String headers;
-    private int retriesNumber;
-    private boolean ignoreSsl = false;
-    private boolean chunkedMode = true;
-    private boolean isSmsEnabled = true;
+    public int retriesNumber;
+    public boolean ignoreSsl = false;
+    public boolean chunkedMode = true;
+    public boolean isSmsEnabled = true;
+    public boolean isNotificationEnabled;
+    public ActivityType activityType = ActivityType.SMS;
 
     public ForwardingConfig(Context context) {
         this.context = context;
@@ -126,6 +155,22 @@ public class ForwardingConfig {
         this.isSmsEnabled = isSmsEnabled;
     }
 
+    public boolean getIsNotificationEnabled() {
+        return this.isNotificationEnabled;
+    }
+
+    public void setIsNotificationEnabled(boolean isNotificationEnabled) {
+        this.isNotificationEnabled = isNotificationEnabled;
+    }
+
+    public ActivityType getActivityType() {
+        return this.activityType;
+    }
+
+    public void setActivityType(ActivityType activityType) {
+        this.activityType = activityType;
+    }
+
     public static String getDefaultJsonTemplate() {
         return "{\n  \"from\":\"%from%\",\n  \"text\":\"%text%\",\n  \"sentStamp\":%sentStamp%,\n  \"receivedStamp\":%receivedStamp%,\n  \"sim\":\"%sim%\"\n}";
     }
@@ -155,6 +200,8 @@ public class ForwardingConfig {
             json.put(KEY_IGNORE_SSL, this.ignoreSsl);
             json.put(KEY_CHUNKED_MODE, this.chunkedMode);
             json.put(KEY_IS_SMS_ENABLED, this.isSmsEnabled);
+            json.put(KEY_IS_NOTIFICATION_ENABLED, this.isNotificationEnabled);
+            json.put(KEY_ACTIVITY_TYPE, this.activityType.getValue());
             json.put("isOn", this.isOn);
 
             SharedPreferences.Editor editor = getEditor(context);
@@ -224,6 +271,16 @@ public class ForwardingConfig {
                     } catch (JSONException ignored) {
                     }
 
+                    if (!json.has(KEY_IS_NOTIFICATION_ENABLED)) {
+                        config.setIsNotificationEnabled(false);
+                    } else {
+                        config.setIsNotificationEnabled(json.getBoolean(KEY_IS_NOTIFICATION_ENABLED));
+                    }
+
+                    if (json.has(KEY_ACTIVITY_TYPE)) {
+                        config.activityType = ActivityType.fromString(json.getString(KEY_ACTIVITY_TYPE));
+                    }
+
                     config.id = config.getKey().hashCode();
                 } catch (JSONException e) {
                     Log.e("ForwardingConfig", e.getMessage());
@@ -247,14 +304,33 @@ public class ForwardingConfig {
         editor.commit();
     }
 
-    public String prepareMessage(String from, String content, String sim, long timeStamp) {
-        return this.getTemplate()
-                .replaceAll("%from%", from)
-                .replaceAll("%sentStamp%", String.valueOf(timeStamp))
-                .replaceAll("%receivedStamp%", String.valueOf(System.currentTimeMillis()))
-                .replaceAll("%sim%", sim)
-                .replaceAll("%text%",
-                        Matcher.quoteReplacement(StringEscapeUtils.escapeJson(content)));
+    public String prepareMessage(String from, String text, String sim, long timeStamp) {
+        String template = this.getJsonTemplate();
+
+        template = template.replace("%from%", from);
+        template = template.replace("%text%", text);
+        template = template.replace("%sim%", sim);
+        template = template.replace("%sentStamp%", String.valueOf(timeStamp));
+        template = template.replace("%receivedStamp%", String.valueOf(System.currentTimeMillis()));
+
+        return template;
+    }
+
+    public String prepareNotificationMessage(String packageName, String title, String content, String fullMessage,
+            long timeStamp) {
+        String template = this.getJsonTemplate();
+
+        // Replace notification-specific template variables
+        template = template.replace("%from%", packageName);
+        template = template.replace("%text%", fullMessage);
+        template = template.replace("%title%", title != null ? title : "");
+        template = template.replace("%content%", content != null ? content : "");
+        template = template.replace("%package%", packageName);
+        template = template.replace("%sentStamp%", String.valueOf(timeStamp));
+        template = template.replace("%receivedStamp%", String.valueOf(System.currentTimeMillis()));
+        template = template.replace("%sim%", "notification"); // For notifications, sim is always "notification"
+
+        return template;
     }
 
     private static SharedPreferences getPreference(Context context) {

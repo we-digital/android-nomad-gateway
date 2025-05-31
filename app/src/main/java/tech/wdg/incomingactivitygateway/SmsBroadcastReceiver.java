@@ -52,11 +52,16 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
         }
 
         for (ForwardingConfig config : configs) {
-            if (!sender.equals(config.getSender()) && !config.getSender().equals(asterisk)) {
+            if (!config.isOn) {
                 continue;
             }
 
-            if (!config.getIsSmsEnabled()) {
+            // Skip if this is not an SMS rule
+            if (config.getActivityType() != ForwardingConfig.ActivityType.SMS) {
+                continue;
+            }
+
+            if (!sender.equals(config.getSender()) && !config.getSender().equals(asterisk)) {
                 continue;
             }
 
@@ -79,7 +84,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     }
 
     protected void callWebHook(ForwardingConfig config, String sender, String slotName,
-                               String content, long timeStamp) {
+            String content, long timeStamp) {
 
         String message = config.prepareMessage(sender, content, slotName, timeStamp);
 
@@ -96,16 +101,14 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 .putInt(RequestWorker.DATA_MAX_RETRIES, config.getRetriesNumber())
                 .build();
 
-        WorkRequest workRequest =
-                new OneTimeWorkRequest.Builder(RequestWorker.class)
-                        .setConstraints(constraints)
-                        .setBackoffCriteria(
-                                BackoffPolicy.EXPONENTIAL,
-                                OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
-                                TimeUnit.MILLISECONDS
-                        )
-                        .setInputData(data)
-                        .build();
+        WorkRequest workRequest = new OneTimeWorkRequest.Builder(RequestWorker.class)
+                .setConstraints(constraints)
+                .setBackoffCriteria(
+                        BackoffPolicy.EXPONENTIAL,
+                        OneTimeWorkRequest.MIN_BACKOFF_MILLIS,
+                        TimeUnit.MILLISECONDS)
+                .setInputData(data)
+                .build();
 
         WorkManager
                 .getInstance(this.context)
