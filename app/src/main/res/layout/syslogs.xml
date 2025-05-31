@@ -37,9 +37,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardBackgroundColor="?attr/colorSurfaceVariant"
-        app:cardElevation="0dp"
-        app:strokeWidth="1dp"
-        app:strokeColor="?attr/colorOutline">
+        app:cardCornerRadius="16dp"
+        app:cardElevation="1dp"
+        app:strokeWidth="0dp">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"

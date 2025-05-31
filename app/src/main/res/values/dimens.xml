@@ -12,7 +12,13 @@
     
     <!-- Card dimensions -->
     <dimen name="card_elevation">2dp</dimen>
-    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation_small">1dp</dimen>
+    <dimen name="card_elevation_medium">3dp</dimen>
+    <dimen name="card_elevation_large">6dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_corner_radius_small">12dp</dimen>
+    <dimen name="card_corner_radius_large">20dp</dimen>
+    <dimen name="card_corner_radius_extra_large">24dp</dimen>
     <dimen name="card_padding">16dp</dimen>
     <dimen name="card_margin">8dp</dimen>
     
