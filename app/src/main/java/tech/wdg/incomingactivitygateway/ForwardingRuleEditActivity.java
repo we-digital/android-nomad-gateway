@@ -51,7 +51,6 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private boolean isNew;
 
     // Basic fields
-    private TextInputEditText senderInput;
     private TextInputEditText urlInput;
     private TextInputEditText retriesInput;
     private MaterialSwitch ignoreSslSwitch;
@@ -71,8 +70,12 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     // All sources switch and filtering
     private MaterialSwitch allSourcesSwitch;
     private LinearLayout sourceFilteringContainer;
-    private TextInputLayout senderInputLayout;
     private LinearLayout smsPhoneContainer;
+
+    // SMS phone numbers filtering (new)
+    private LinearLayout smsPhoneNumbersContainer;
+    private LinearLayout smsPhoneNumbersListContainer;
+    private List<PhoneNumberFieldPair> smsPhoneNumberFields;
 
     // Call phone numbers filtering
     private LinearLayout callPhoneNumbersContainer;
@@ -158,7 +161,6 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
     private void initializeViews() {
         // Basic fields
-        senderInput = findViewById(R.id.input_sender);
         urlInput = findViewById(R.id.input_url);
         retriesInput = findViewById(R.id.input_retries);
         ignoreSslSwitch = findViewById(R.id.switch_ignore_ssl);
@@ -177,8 +179,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // All sources switch and filtering
         allSourcesSwitch = findViewById(R.id.switch_all_sources);
         sourceFilteringContainer = findViewById(R.id.source_filtering_container);
-        senderInputLayout = findViewById(R.id.input_sender_layout);
         smsPhoneContainer = findViewById(R.id.sms_phone_container);
+
+        // SMS phone numbers filtering (similar to calls)
+        smsPhoneNumbersContainer = findViewById(R.id.sms_phone_container); // Reuse same container
+        smsPhoneNumbersListContainer = findViewById(R.id.sms_phone_numbers_list_container); // Need to add this to
+                                                                                            // layout
+        smsPhoneNumberFields = new ArrayList<>();
 
         // Call phone numbers filtering
         callPhoneNumbersContainer = findViewById(R.id.call_phone_numbers_container);
@@ -211,9 +218,16 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         MaterialButton addTemplateFieldButton = findViewById(R.id.btn_add_template_field);
         addTemplateFieldButton.setOnClickListener(v -> addCustomTemplateField("", ""));
 
-        // Add phone number button
+        // Add phone number button for calls
         MaterialButton addPhoneNumberButton = findViewById(R.id.btn_add_phone_number);
         addPhoneNumberButton.setOnClickListener(v -> addPhoneNumberField(""));
+
+        // Add SMS phone number button
+        MaterialButton addSmsPhoneNumberButton = findViewById(R.id.btn_add_sms_phone_number); // Need to add this to
+                                                                                              // layout
+        if (addSmsPhoneNumberButton != null) {
+            addSmsPhoneNumberButton.setOnClickListener(v -> addSmsPhoneNumberField(""));
+        }
 
         // Template variables info
         templateVariablesHeader = findViewById(R.id.template_variables_header);
@@ -295,8 +309,8 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             templateTextValueInput.setText("%contact%");
             templateTimestampKeyInput.setText("timestamp");
             templateTimestampValueInput.setText("%timestamp%");
-            templateSimKeyInput.setText("duration");
-            templateSimValueInput.setText("%duration%");
+            templateSimKeyInput.setText("sim");
+            templateSimValueInput.setText("%sim%");
         } else {
             // Default template values for SMS
             templateFromKeyInput.setText("from");
@@ -315,7 +329,6 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         if ("*".equals(config.getSender())) {
             allSourcesSwitch.setChecked(true);
             sourceFilteringContainer.setVisibility(View.GONE);
-            senderInput.setText(""); // Clear the field since it's not used
             selectedAppPackage = null; // Clear app selection
         } else {
             allSourcesSwitch.setChecked(false);
@@ -331,8 +344,11 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                         break;
                     }
                 }
+            } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                // Don't set in text field, will be handled by parseExistingPhoneNumbers
             } else {
-                senderInput.setText(config.getSender());
+                // For SMS, don't set in text field, will be handled by
+                // parseExistingSmsPhoneNumbers
             }
         }
 
@@ -365,6 +381,11 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         if (config.getActivityType() == ForwardingConfig.ActivityType.CALL && !allSourcesSwitch.isChecked()) {
             parseExistingPhoneNumbers();
         }
+
+        // Parse existing phone numbers for SMS
+        if (config.getActivityType() == ForwardingConfig.ActivityType.SMS && !allSourcesSwitch.isChecked()) {
+            parseExistingSmsPhoneNumbers();
+        }
     }
 
     private void parseExistingTemplate() {
@@ -372,27 +393,33 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             String template = config.getJsonTemplate();
             JSONObject json = new JSONObject(template);
 
-            // Reset to defaults first
-            setupDefaultValues();
+            // Don't reset to defaults first - we'll handle fields manually
+            // Clear any existing custom fields
+            customTemplateFields.clear();
+            customTemplateFieldsContainer.removeAllViews();
 
-            // Parse all fields from existing template
-            Iterator<String> keys = json.keys();
+            // Track which standard template variables have been found
             boolean foundFrom = false, foundText = false, foundTimestamp = false, foundSim = false;
+            boolean foundContact = false, foundDuration = false, foundTitle = false, foundContent = false,
+                    foundPackage = false;
 
+            Iterator<String> keys = json.keys();
             while (keys.hasNext()) {
                 String key = keys.next();
                 String value = json.getString(key);
 
-                // Check if it matches standard fields
+                // Check if it matches standard fields based on the value
                 if (value.equals("%from%") && !foundFrom) {
                     templateFromKeyInput.setText(key);
                     templateFromValueInput.setText(value);
                     foundFrom = true;
-                } else if (value.equals("%text%") && !foundText) {
+                } else if ((value.equals("%text%") || value.equals("%content%") || value.equals("%message%"))
+                        && !foundText) {
                     templateTextKeyInput.setText(key);
                     templateTextValueInput.setText(value);
                     foundText = true;
-                } else if ((value.equals("%sentStamp%") || value.equals("%receivedStamp%")) && !foundTimestamp) {
+                } else if ((value.equals("%sentStamp%") || value.equals("%receivedStamp%")
+                        || value.equals("%timestamp%")) && !foundTimestamp) {
                     templateTimestampKeyInput.setText(key);
                     templateTimestampValueInput.setText(value);
                     foundTimestamp = true;
@@ -400,15 +427,94 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                     templateSimKeyInput.setText(key);
                     templateSimValueInput.setText(value);
                     foundSim = true;
-                } else {
-                    // Add as custom field
+                } else if (value.equals("%contact%") && !foundContact) {
+                    // For calls, contact goes in text field
+                    if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                        templateTextKeyInput.setText(key);
+                        templateTextValueInput.setText(value);
+                        foundText = true;
+                    }
+                    foundContact = true;
+                } else if (value.equals("%duration%") && !foundDuration) {
+                    // For calls, duration should be a custom field now, not the standard sim field
+                    foundDuration = true;
                     addCustomTemplateField(key, value);
+                } else if (value.equals("%title%") && !foundTitle) {
+                    // For push, title goes in sim field
+                    if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                        templateSimKeyInput.setText(key);
+                        templateSimValueInput.setText(value);
+                        foundSim = true;
+                    }
+                    foundTitle = true;
+                } else if (value.equals("%package%") && !foundPackage) {
+                    // For push, package goes in from field
+                    if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                        templateFromKeyInput.setText(key);
+                        templateFromValueInput.setText(value);
+                        foundFrom = true;
+                    }
+                    foundPackage = true;
+                } else if (!isStandardTemplateValue(value)) {
+                    // Only add as custom field if it's not a standard template variable
+                    addCustomTemplateField(key, value);
+                }
+            }
+
+            // Set defaults for any missing standard fields
+            if (!foundFrom && templateFromKeyInput.getText().toString().isEmpty()) {
+                if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                    templateFromKeyInput.setText("app");
+                    templateFromValueInput.setText("%package%");
+                } else {
+                    templateFromKeyInput.setText("from");
+                    templateFromValueInput.setText("%from%");
+                }
+            }
+            if (!foundText && templateTextKeyInput.getText().toString().isEmpty()) {
+                if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                    templateTextKeyInput.setText("message");
+                    templateTextValueInput.setText("%text%");
+                } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                    templateTextKeyInput.setText("contact");
+                    templateTextValueInput.setText("%contact%");
+                } else {
+                    templateTextKeyInput.setText("text");
+                    templateTextValueInput.setText("%text%");
+                }
+            }
+            if (!foundTimestamp && templateTimestampKeyInput.getText().toString().isEmpty()) {
+                if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                    templateTimestampKeyInput.setText("timestamp");
+                    templateTimestampValueInput.setText("%timestamp%");
+                } else {
+                    templateTimestampKeyInput.setText("sentStamp");
+                    templateTimestampValueInput.setText("%sentStamp%");
+                }
+            }
+            if (!foundSim && templateSimKeyInput.getText().toString().isEmpty()) {
+                if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                    templateSimKeyInput.setText("title");
+                    templateSimValueInput.setText("%title%");
+                } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                    templateSimKeyInput.setText("sim");
+                    templateSimValueInput.setText("%sim%");
+                } else {
+                    templateSimKeyInput.setText("sim");
+                    templateSimValueInput.setText("%sim%");
                 }
             }
         } catch (JSONException e) {
             // Fallback to defaults
-            setupDefaultValues();
+            setDefaultTemplateValues();
         }
+    }
+
+    private boolean isStandardTemplateValue(String value) {
+        return value.equals("%from%") || value.equals("%text%") || value.equals("%sentStamp%") ||
+                value.equals("%receivedStamp%") || value.equals("%sim%") || value.equals("%timestamp%") ||
+                value.equals("%duration%") || value.equals("%contact%") || value.equals("%title%") ||
+                value.equals("%content%") || value.equals("%package%") || value.equals("%message%");
     }
 
     private void parseExistingHeaders() {
@@ -491,6 +597,42 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         phoneNumbersListContainer.addView(phoneView);
     }
 
+    private void addSmsPhoneNumberField(String phoneNumber) {
+        // Create container if it doesn't exist yet
+        if (smsPhoneNumbersListContainer == null) {
+            // If the list container doesn't exist in layout, create it dynamically
+            smsPhoneNumbersListContainer = new LinearLayout(this);
+            smsPhoneNumbersListContainer.setOrientation(LinearLayout.VERTICAL);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT);
+            smsPhoneNumbersListContainer.setLayoutParams(params);
+
+            // Add it to the SMS phone container
+            if (smsPhoneContainer != null) {
+                smsPhoneContainer.addView(smsPhoneNumbersListContainer);
+            }
+        }
+
+        View phoneView = LayoutInflater.from(this).inflate(R.layout.item_phone_field,
+                smsPhoneNumbersListContainer, false);
+
+        TextInputEditText phoneInput = phoneView.findViewById(R.id.input_phone_number);
+        MaterialButton removeButton = phoneView.findViewById(R.id.btn_remove_phone);
+
+        phoneInput.setText(phoneNumber);
+
+        PhoneNumberFieldPair pair = new PhoneNumberFieldPair(phoneView, phoneInput);
+        smsPhoneNumberFields.add(pair);
+
+        removeButton.setOnClickListener(v -> {
+            smsPhoneNumbersListContainer.removeView(phoneView);
+            smsPhoneNumberFields.remove(pair);
+        });
+
+        smsPhoneNumbersListContainer.addView(phoneView);
+    }
+
     private void setupClickListeners() {
         MaterialButton saveButton = findViewById(R.id.btn_save);
         MaterialButton testButton = findViewById(R.id.btn_test);
@@ -515,8 +657,8 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 // For calls, use comma-separated phone numbers
                 config.setSender(buildPhoneNumbersList());
             } else {
-                // For SMS, use phone number from text field
-                config.setSender(senderInput.getText().toString().trim());
+                // For SMS, use comma-separated phone numbers from repeater field
+                config.setSender(buildSmsPhoneNumbersList());
             }
         }
         config.setUrl(urlInput.getText().toString().trim());
@@ -576,10 +718,20 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                     }
                 }
             } else {
-                // For SMS, validate phone number
-                if (TextUtils.isEmpty(senderInput.getText())) {
-                    senderInput.setError("Phone number is required");
+                // For SMS, validate phone numbers
+                if (smsPhoneNumberFields.isEmpty()) {
+                    Toast.makeText(this, "Please add at least one phone number for SMS monitoring", Toast.LENGTH_SHORT)
+                            .show();
                     isValid = false;
+                } else {
+                    // Validate each SMS phone number
+                    for (PhoneNumberFieldPair pair : smsPhoneNumberFields) {
+                        String phoneNumber = pair.phoneInput.getText().toString().trim();
+                        if (!isValidPhoneNumber(phoneNumber)) {
+                            pair.phoneInput.setError("Invalid phone number format");
+                            isValid = false;
+                        }
+                    }
                 }
             }
         }
@@ -683,7 +835,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             } else if (chipTypeCall.isChecked()) {
                 tempConfig.setSender(buildPhoneNumbersList());
             } else {
-                tempConfig.setSender(senderInput.getText().toString().trim());
+                tempConfig.setSender(buildSmsPhoneNumbersList());
             }
         }
         tempConfig.setUrl(urlInput.getText().toString().trim());
@@ -709,8 +861,10 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                         "com.example.testapp", "Test Title", "Test Content", "Test Message",
                         System.currentTimeMillis());
             } else if (chipTypeCall.isChecked()) {
+                // Use the new operator settings for SIM name
+                String simName = OperatorSettingsActivity.getSimName(this, 0); // Use first SIM for testing
                 payload = tempConfig.prepareCallMessage(
-                        "+1234567890", "Test Contact", System.currentTimeMillis());
+                        "+1234567890", "Test Contact", simName, System.currentTimeMillis());
             } else {
                 // Use the new operator settings for SIM name
                 String simName = OperatorSettingsActivity.getSimName(this, 0); // Use first SIM for testing
@@ -870,6 +1024,10 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Show SMS phone number field (only if not using "All sources")
         if (!allSourcesSwitch.isChecked()) {
             smsPhoneContainer.setVisibility(View.VISIBLE);
+            // Initialize SMS phone fields if empty
+            if (smsPhoneNumberFields.isEmpty() && isNew) {
+                addSmsPhoneNumberField("");
+            }
         } else {
             smsPhoneContainer.setVisibility(View.GONE);
         }
@@ -970,6 +1128,20 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         return phoneNumbers.toString();
     }
 
+    private String buildSmsPhoneNumbersList() {
+        StringBuilder phoneNumbers = new StringBuilder();
+        for (PhoneNumberFieldPair pair : smsPhoneNumberFields) {
+            String phone = pair.phoneInput.getText().toString().trim();
+            if (!TextUtils.isEmpty(phone)) {
+                if (phoneNumbers.length() > 0) {
+                    phoneNumbers.append(",");
+                }
+                phoneNumbers.append(phone);
+            }
+        }
+        return phoneNumbers.toString();
+    }
+
     private void parseExistingPhoneNumbers() {
         String sender = config.getSender();
         if (!TextUtils.isEmpty(sender) && !sender.equals("*")) {
@@ -978,6 +1150,19 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 String trimmed = phoneNumber.trim();
                 if (!TextUtils.isEmpty(trimmed)) {
                     addPhoneNumberField(trimmed);
+                }
+            }
+        }
+    }
+
+    private void parseExistingSmsPhoneNumbers() {
+        String sender = config.getSender();
+        if (!TextUtils.isEmpty(sender) && !sender.equals("*")) {
+            String[] phoneNumbers = sender.split(",");
+            for (String phoneNumber : phoneNumbers) {
+                String trimmed = phoneNumber.trim();
+                if (!TextUtils.isEmpty(trimmed)) {
+                    addSmsPhoneNumberField(trimmed);
                 }
             }
         }

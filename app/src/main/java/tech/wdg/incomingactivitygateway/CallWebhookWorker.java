@@ -24,6 +24,7 @@ public class CallWebhookWorker extends Worker {
             String configKey = getInputData().getString("config_key");
             String phoneNumber = getInputData().getString("phone_number");
             String contactName = getInputData().getString("contact_name");
+            String simName = getInputData().getString("sim_name");
             long timestamp = getInputData().getLong("timestamp", System.currentTimeMillis());
 
             if (configKey == null || phoneNumber == null) {
@@ -38,8 +39,8 @@ public class CallWebhookWorker extends Worker {
                 return Result.failure();
             }
 
-            // Prepare the call message
-            String payload = config.prepareCallMessage(phoneNumber, contactName, timestamp);
+            // Prepare the call message with SIM info
+            String payload = config.prepareCallMessage(phoneNumber, contactName, simName, timestamp);
 
             // Send the webhook
             Request request = new Request(config.getUrl(), payload);

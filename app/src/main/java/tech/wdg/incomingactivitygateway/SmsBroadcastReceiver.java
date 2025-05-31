@@ -66,7 +66,11 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
                 continue;
             }
 
-            if (!sender.equals(config.getSender()) && !config.getSender().equals(asterisk)) {
+            // Check if sender matches (now supports comma-separated numbers)
+            String configSender = config.getSender();
+            boolean senderMatches = configSender.equals(asterisk) || isPhoneNumberMatch(sender, configSender);
+
+            if (!senderMatches) {
                 continue;
             }
 
@@ -169,5 +173,29 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
         }
 
         return slotId;
+    }
+
+    private boolean isPhoneNumberMatch(String incomingNumber, String configNumbers) {
+        if (android.text.TextUtils.isEmpty(configNumbers) || android.text.TextUtils.isEmpty(incomingNumber)) {
+            return false;
+        }
+
+        // Clean incoming number (remove non-digits)
+        String cleanIncoming = incomingNumber.replaceAll("[^0-9]", "");
+
+        // Split config numbers by comma and check each one
+        String[] phoneNumbers = configNumbers.split(",");
+        for (String phoneNumber : phoneNumbers) {
+            String cleanConfig = phoneNumber.trim().replaceAll("[^0-9]", "");
+
+            // Match if the numbers are the same or if one ends with the other (for
+            // international vs local)
+            if (cleanIncoming.equals(cleanConfig) ||
+                    cleanIncoming.endsWith(cleanConfig) ||
+                    cleanConfig.endsWith(cleanIncoming)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

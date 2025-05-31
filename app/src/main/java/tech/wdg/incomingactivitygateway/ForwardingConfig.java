@@ -348,6 +348,22 @@ public class ForwardingConfig {
         return template;
     }
 
+    // New overloaded method with SIM name
+    public String prepareCallMessage(String phoneNumber, String contactName, String simName, long timeStamp) {
+        String template = this.getJsonTemplate();
+
+        // Replace call-specific template variables
+        template = template.replace("%from%", phoneNumber);
+        template = template.replace("%contact%", contactName != null ? contactName : "Unknown");
+        template = template.replace("%timestamp%", String.valueOf(timeStamp));
+        template = template.replace("%duration%", "0"); // Duration is 0 for incoming calls
+        template = template.replace("%sentStamp%", String.valueOf(timeStamp));
+        template = template.replace("%receivedStamp%", String.valueOf(System.currentTimeMillis()));
+        template = template.replace("%sim%", simName != null ? simName : "undetected");
+
+        return template;
+    }
+
     private static SharedPreferences getPreference(Context context) {
         if (context == null) {
             throw new IllegalArgumentException("Context cannot be null");

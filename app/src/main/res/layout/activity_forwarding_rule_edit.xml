@@ -213,27 +213,37 @@
                             android:layout_marginBottom="16dp"
                             android:visibility="visible">
 
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:id="@+id/input_sender_layout"
+                            <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                                android:hint="Phone number"
-                                app:helperText="Enter phone number"
-                                app:helperTextEnabled="true"
-                                app:startIconDrawable="@drawable/ic_edit"
-                                app:boxCornerRadiusTopStart="12dp"
-                                app:boxCornerRadiusTopEnd="12dp"
-                                app:boxCornerRadiusBottomStart="12dp"
-                                app:boxCornerRadiusBottomEnd="12dp">
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
 
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/input_sender"
-                                    android:layout_width="match_parent"
+                                <TextView
+                                    android:layout_width="0dp"
                                     android:layout_height="wrap_content"
-                                    android:inputType="phone" />
+                                    android:layout_weight="1"
+                                    android:text="Phone Numbers to Monitor"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnSurface" />
 
-                            </com.google.android.material.textfield.TextInputLayout>
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_add_sms_phone_number"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Add Number"
+                                    app:icon="@drawable/ic_add"
+                                    android:textColor="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/sms_phone_numbers_list_container"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
 
                         </LinearLayout>
 
@@ -706,6 +716,19 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:text="%duration%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnErrorContainer"
+                                            app:chipBackgroundColor="?attr/colorErrorContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%sim%"
                                             android:textSize="12sp"
                                             android:textColor="?attr/colorOnErrorContainer"
                                             app:chipBackgroundColor="?attr/colorErrorContainer"

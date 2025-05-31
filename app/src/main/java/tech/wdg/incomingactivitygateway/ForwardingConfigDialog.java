@@ -291,10 +291,23 @@ public class ForwardingConfigDialog {
         }
 
         Thread thread = new Thread(() -> {
+            String payload;
+
             // Use the new operator settings for SIM name
             String simName = OperatorSettingsActivity.getSimName(context, 0); // Use first SIM for testing
-            String payload = config.prepareMessage(
-                    "123456789", "test message", simName, System.currentTimeMillis());
+
+            if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                payload = config.prepareNotificationMessage(
+                        "com.example.testapp", "Test Title", "Test Content", "Test Message",
+                        System.currentTimeMillis());
+            } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+                payload = config.prepareCallMessage(
+                        "+1234567890", "Test Contact", simName, System.currentTimeMillis());
+            } else {
+                payload = config.prepareMessage(
+                        "123456789", "test message", simName, System.currentTimeMillis());
+            }
+
             Request request = new Request(config.getUrl(), payload);
             request.setJsonHeaders(config.getHeaders());
             request.setIgnoreSsl(config.getIgnoreSsl());

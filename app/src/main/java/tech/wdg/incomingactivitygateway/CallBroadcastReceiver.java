@@ -9,6 +9,8 @@ import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
 import android.util.Log;
+import android.os.Build;
+import android.os.Bundle;
 
 import androidx.work.BackoffPolicy;
 import androidx.work.Constraints;
@@ -37,6 +39,7 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
 
         if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
+            Bundle bundle = intent.getExtras();
 
             // Handle deprecated EXTRA_INCOMING_NUMBER
             String phoneNumber = null;
@@ -53,13 +56,15 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
             }
 
             if (TelephonyManager.EXTRA_STATE_RINGING.equals(state) && phoneNumber != null) {
-                handleIncomingCall(phoneNumber);
+                // Detect SIM slot
+                int slotId = detectSim(bundle);
+                handleIncomingCall(phoneNumber, slotId);
             }
         }
     }
 
-    private void handleIncomingCall(String phoneNumber) {
-        Log.d(TAG, "Incoming call from: " + phoneNumber);
+    private void handleIncomingCall(String phoneNumber, int slotId) {
+        Log.d(TAG, "Incoming call from: " + phoneNumber + " on SIM slot: " + slotId);
 
         ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
         String asterisk = context.getString(R.string.asterisk);
@@ -82,13 +87,24 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
                 continue;
             }
 
+            // Check SIM slot filtering
+            if (config.getSimSlot() > 0 && config.getSimSlot() != (slotId + 1)) {
+                continue;
+            }
+
             Log.d(TAG, "Forwarding call from " + phoneNumber + " via rule: " + config.getKey());
 
             // Get contact name if available
             String contactName = getContactName(phoneNumber);
 
+            // Get SIM name
+            String simName = "undetected";
+            if (slotId >= 0) {
+                simName = OperatorSettingsActivity.getSimName(context, slotId);
+            }
+
             // Send call webhook
-            sendCallWebhook(config, phoneNumber, contactName);
+            sendCallWebhook(config, phoneNumber, contactName, simName);
         }
     }
 
@@ -141,11 +157,12 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
         return null; // No contact found
     }
 
-    private void sendCallWebhook(ForwardingConfig config, String phoneNumber, String contactName) {
+    private void sendCallWebhook(ForwardingConfig config, String phoneNumber, String contactName, String simName) {
         Data inputData = new Data.Builder()
                 .putString("config_key", config.getKey())
                 .putString("phone_number", phoneNumber)
                 .putString("contact_name", contactName != null ? contactName : "")
+                .putString("sim_name", simName)
                 .putLong("timestamp", System.currentTimeMillis())
                 .build();
 
@@ -195,5 +212,58 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
             Log.e(TAG, "Error getting latest incoming number: " + e.getMessage());
         }
         return null;
+    }
+
+    private int detectSim(Bundle bundle) {
+        int slotId = -1;
+        if (bundle == null) {
+            return slotId;
+        }
+
+        java.util.Set<String> keySet = bundle.keySet();
+        for (String key : keySet) {
+            switch (key) {
+                case "phone":
+                    slotId = bundle.getInt("phone", -1);
+                    break;
+                case "slot":
+                    slotId = bundle.getInt("slot", -1);
+                    break;
+                case "simId":
+                    slotId = bundle.getInt("simId", -1);
+                    break;
+                case "simSlot":
+                    slotId = bundle.getInt("simSlot", -1);
+                    break;
+                case "slot_id":
+                    slotId = bundle.getInt("slot_id", -1);
+                    break;
+                case "simnum":
+                    slotId = bundle.getInt("simnum", -1);
+                    break;
+                case "slotId":
+                    slotId = bundle.getInt("slotId", -1);
+                    break;
+                case "slotIdx":
+                    slotId = bundle.getInt("slotIdx", -1);
+                    break;
+                case "android.telephony.extra.SLOT_INDEX":
+                    slotId = bundle.getInt("android.telephony.extra.SLOT_INDEX", -1);
+                    break;
+                default:
+                    if (key.toLowerCase().contains("slot") || key.toLowerCase().contains("sim")) {
+                        String value = bundle.getString(key, "-1");
+                        if (value.equals("0") || value.equals("1") || value.equals("2")) {
+                            slotId = bundle.getInt(key, -1);
+                        }
+                    }
+            }
+
+            if (slotId != -1) {
+                break;
+            }
+        }
+
+        return slotId;
     }
 }
