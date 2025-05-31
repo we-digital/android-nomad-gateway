@@ -111,10 +111,10 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Configure app settings and view system information"
+                        android:text="Activity Gateway forwards SMS messages, push notifications, and call events to webhooks. Configure forwarding rules to send data to your preferred endpoints."
                         android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                        android:textColor="?attr/colorOnPrimaryContainer"
-                        android:alpha="0.9" />
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:lineSpacingExtra="2dp" />
 
                 </LinearLayout>
 
@@ -216,6 +216,16 @@
                         android:orientation="horizontal"
                         android:gravity="end"
                         android:layout_marginTop="16dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btn_copy_logs"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="Copy"
+                            app:icon="@drawable/ic_copy"
+                            android:textColor="?attr/colorPrimary" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btn_refresh_logs"
@@ -462,9 +472,10 @@
                     </LinearLayout>
 
                     <TextView
+                        android:id="@+id/about_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Activity Gateway forwards SMS messages, push notifications, and call events to webhooks. Configure forwarding rules to send data to your preferred endpoints."
+                        android:text="Proudly Vibe-coded by @wedigital using Claude \ Cursor"
                         android:textAppearance="@style/TextAppearance.App.BodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:lineSpacingExtra="2dp" />

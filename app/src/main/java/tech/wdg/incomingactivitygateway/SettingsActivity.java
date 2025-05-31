@@ -2,13 +2,22 @@ package tech.wdg.incomingactivitygateway;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -28,10 +37,12 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView syslogsText;
     private TextView appVersion;
     private TextView serviceStatusText;
+    private TextView aboutText;
     private Chip chipServiceStatus;
     private Chip chipSmsPermission;
     private MaterialButton btnRefreshLogs;
     private MaterialButton btnClearLogs;
+    private MaterialButton btnCopyLogs;
     private MaterialButton btnOperatorSettings;
 
     @Override
@@ -48,6 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
         setupToolbar();
         initializeViews();
         setupClickListeners();
+        setupClickableText();
         loadSystemLogs();
         updateAppInfo();
         updateServiceStatus();
@@ -67,17 +79,60 @@ public class SettingsActivity extends AppCompatActivity {
         syslogsText = findViewById(R.id.syslogs_text);
         appVersion = findViewById(R.id.app_version);
         serviceStatusText = findViewById(R.id.service_status_text);
+        aboutText = findViewById(R.id.about_text);
         chipServiceStatus = findViewById(R.id.chip_service_status);
         chipSmsPermission = findViewById(R.id.chip_sms_permission);
         btnRefreshLogs = findViewById(R.id.btn_refresh_logs);
         btnClearLogs = findViewById(R.id.btn_clear_logs);
+        btnCopyLogs = findViewById(R.id.btn_copy_logs);
         btnOperatorSettings = findViewById(R.id.btn_operator_settings);
     }
 
     private void setupClickListeners() {
         btnRefreshLogs.setOnClickListener(v -> loadSystemLogs());
         btnClearLogs.setOnClickListener(v -> clearSystemLogs());
+        btnCopyLogs.setOnClickListener(v -> copyLogsToClipboard());
         btnOperatorSettings.setOnClickListener(v -> openOperatorSettings());
+    }
+
+    private void setupClickableText() {
+        String text = "Proudly Vibe-coded by @wedigital using Claude \\ Cursor";
+        SpannableString spannableString = new SpannableString(text);
+
+        // Find the @wedigital part
+        int start = text.indexOf("@wedigital");
+        int end = start + "@wedigital".length();
+
+        ClickableSpan clickableSpan = new ClickableSpan() {
+            @Override
+            public void onClick(View widget) {
+                openTelegramLink();
+            }
+        };
+
+        spannableString.setSpan(clickableSpan, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        aboutText.setText(spannableString);
+        aboutText.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
+    private void openTelegramLink() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://t.me/wedigital"));
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open link", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void copyLogsToClipboard() {
+        String logs = syslogsText.getText().toString();
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("System Logs", logs);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(this, "Logs copied to clipboard", Toast.LENGTH_SHORT).show();
     }
 
     private void loadSystemLogs() {
