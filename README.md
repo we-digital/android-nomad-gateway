@@ -156,29 +156,36 @@ $decoded = json_decode($payload, true);
 ### Screenshots
 
 #### Main Interface
-![Main Screen - Default View](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_default.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_default.png" alt="Main Screen - Default View" style="max-height: 500px;">
+
 *The main screen showing the clean, modern Material Design 3 interface when no forwarding rules are configured yet.*
 
-![Main Screen - With Active Rule](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_with_rule.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_with_rule.png" alt="Main Screen - With Active Rule" style="max-height: 500px;">
+
 *The main screen displaying an active forwarding rule configuration with the status indicator showing the app is listening for incoming activities.*
 
 #### Adding New Forwarding Rules
-![Add New Rule](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_add.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_add.png" alt="Add New Rule" style="max-height: 500px;">
+
 *The rule creation interface where users can configure new forwarding rules for SMS, calls, or notifications with sender/app filtering options.*
 
 #### Template Configuration
-![Rule Template Editor](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_template.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_template.png" alt="Rule Template Editor" style="max-height: 500px;">
+
 *The template editor showing how to customize JSON payloads using template variables like %from%, %text%, %sentStamp%, etc. for flexible webhook integration.*
 
 #### HTTP Headers Configuration
-![Rule Headers Setup](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_headers.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_headers.png" alt="Rule Headers Setup" style="max-height: 500px;">
+
 *The HTTP headers configuration screen allowing users to add custom headers for authentication or other webhook requirements.*
 
 #### Settings and Configuration
-![SIM Name Settings](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_sim_name.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_sim_name.png" alt="SIM Name Settings" style="max-height: 500px;">
+
 *Settings screen for configuring SIM card names and identifiers, useful for dual-SIM devices to distinguish between different carriers.*
 
-![Operator Button Settings](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_operator_btn.png)
+<img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_operator_btn.png" alt="Operator Button Settings" style="max-height: 500px;">
+
 *Additional settings options including operator-specific configurations and advanced forwarding parameters.*
 
 ### Misc
