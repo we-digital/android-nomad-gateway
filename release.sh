@@ -240,6 +240,30 @@ update_releases_readme() {
     print_success "Updated releases README.md"
 }
 
+# Function to commit release artifacts
+commit_release_artifacts() {
+    local version=$1
+    local message=$2
+    
+    print_info "Committing release artifacts..."
+    
+    # Add release files to git
+    git add releases/README.md
+    git add "releases/release-notes-v$version.md"
+    git add "releases/android-nomad-gateway-v$version.apk"
+    
+    # Commit release artifacts
+    git commit -m "release: add v$version artifacts
+
+- Updated releases README.md with v$version info
+- Added release notes for v$version
+- Added signed APK for v$version
+
+$message"
+    
+    print_success "Committed release artifacts"
+}
+
 # Main function
 main() {
     print_info "🚀 Android Nomad Gateway Release Script"
@@ -276,38 +300,42 @@ main() {
     fi
     
     # Step 1: Version bump
-    print_info "Step 1/6: Version bump and git operations"
+    print_info "Step 1/7: Version bump and git operations"
     ./version_bump.sh "$bump_type" "$release_message"
     
     # Get new version
     local new_version=$(grep "versionName" app/build.gradle | sed 's/.*versionName = "\([^"]*\)".*/\1/')
     
     # Step 2: Build release APK
-    print_info "Step 2/6: Building release APK"
+    print_info "Step 2/7: Building release APK"
     build_release
     
     # Step 3: Run tests
-    print_info "Step 3/6: Running tests"
+    print_info "Step 3/7: Running tests"
     run_tests
     
     # Step 4: Generate release notes
-    print_info "Step 4/6: Generating release notes"
+    print_info "Step 4/7: Generating release notes"
     generate_release_notes "$new_version" "$release_message"
     
     # Step 5: Create GitHub release
-    print_info "Step 5/6: Creating GitHub release"
+    print_info "Step 5/7: Creating GitHub release"
     create_github_release "$new_version" "$release_message"
     
     # Step 6: Update releases README
-    print_info "Step 6/6: Updating releases README"
+    print_info "Step 6/7: Updating releases README"
     update_releases_readme "$new_version" "$release_message" "$APK_SIZE"
+    
+    # Step 7: Commit release artifacts
+    print_info "Step 7/7: Committing release artifacts"
+    commit_release_artifacts "$new_version" "$release_message"
     
     # Final summary
     print_info "Release summary"
     echo ""
     print_success "🎉 Release v$new_version completed successfully!"
     echo ""
-    print_info "📦 Release artifacts:"
+    print_info "📦 Release artifacts (committed to git):"
     echo "  • APK: releases/android-nomad-gateway-v$new_version.apk"
     echo "  • Release notes: releases/release-notes-v$new_version.md"
     echo "  • Releases README: releases/README.md (updated)"
@@ -315,9 +343,9 @@ main() {
     echo ""
     print_info "🚀 Next steps:"
     echo "  • Push changes: git push origin main --tags"
+    echo "  • GitHub release will be available after push (if gh CLI was available)"
     echo "  • Share the release with users"
     echo "  • Update documentation if needed"
-    echo ""
 }
 
 # Run main function

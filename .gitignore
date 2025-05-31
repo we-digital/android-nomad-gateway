@@ -20,8 +20,8 @@ local.properties
 ehthumbs.db
 Thumbs.db
 
-# Built application files
-*.apk
+# Built application files (except releases)
+app/build/**/*.apk
 *.ap_
 *.aab
 

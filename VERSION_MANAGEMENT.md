@@ -75,7 +75,8 @@ The project uses semantic versioning (SemVer) with automated scripts for version
 5. ✅ Creates GitHub release with APK attachment
 6. ✅ Copies APK to `releases/` directory
 7. ✅ Updates releases README.md with new release info
-8. ✅ Provides next steps guidance
+8. ✅ Commits all release artifacts to git
+9. ✅ Provides next steps guidance
 
 ## 📁 File Structure
 
