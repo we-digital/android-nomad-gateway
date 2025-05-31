@@ -165,7 +165,7 @@ create_github_release() {
             --notes-file "$notes_path" \
             "$apk_path"; then
             print_success "GitHub release created successfully!"
-            print_info "Release URL: https://github.com/$(gh repo view --json owner,name -q '.owner.login + "/" + .name")/releases/tag/v$version"
+            print_info "Release URL: https://github.com/\$(gh repo view --json owner,name -q '.owner.login + \"/\" + .name')/releases/tag/v$version"
         else
             print_warning "Failed to create GitHub release. You can create it manually."
         fi
@@ -251,4 +251,4 @@ main() {
 }
 
 # Run main function
-main "$@" 
+main "$@"
