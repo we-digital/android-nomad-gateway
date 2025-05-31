@@ -362,9 +362,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/spacing_medium"
-                        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                        app:cardBackgroundColor="?attr/colorPrimaryContainer"
                         app:cardElevation="0dp"
-                        app:cardCornerRadius="8dp">
+                        app:cardCornerRadius="12dp"
+                        app:strokeWidth="1dp"
+                        app:strokeColor="?attr/colorPrimary">
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -377,27 +379,51 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"
-                                android:padding="@dimen/spacing_small"
+                                android:padding="16dp"
                                 android:gravity="center_vertical"
                                 android:background="?attr/selectableItemBackground"
                                 android:clickable="true"
-                                android:focusable="true">
+                                android:focusable="true"
+                                android:minHeight="56dp">
 
-                                <TextView
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_code"
+                                    android:tint="?attr/colorPrimary"
+                                    android:layout_marginEnd="12dp" />
+
+                                <LinearLayout
                                     android:layout_width="0dp"
                                     android:layout_height="wrap_content"
                                     android:layout_weight="1"
-                                    android:text="Template Variables"
-                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                                    android:textColor="?attr/colorOnSurfaceVariant"
-                                    android:textStyle="bold" />
+                                    android:orientation="vertical">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Template Variables"
+                                        android:textAppearance="@style/TextAppearance.App.TitleMedium"
+                                        android:textColor="?attr/colorOnPrimaryContainer"
+                                        android:textStyle="bold" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Tap to view available variables"
+                                        android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                        android:textColor="?attr/colorOnPrimaryContainer"
+                                        android:alpha="0.8"
+                                        android:layout_marginTop="2dp" />
+
+                                </LinearLayout>
 
                                 <ImageView
                                     android:id="@+id/template_variables_expand_icon"
                                     android:layout_width="24dp"
                                     android:layout_height="24dp"
                                     android:src="@drawable/ic_expand_more"
-                                    android:tint="?attr/colorOnSurfaceVariant" />
+                                    android:tint="?attr/colorPrimary" />
 
                             </LinearLayout>
 
@@ -407,19 +433,300 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="vertical"
-                                android:padding="@dimen/spacing_small"
+                                android:padding="16dp"
                                 android:paddingTop="0dp"
-                                android:visibility="gone">
+                                android:visibility="gone"
+                                android:background="?attr/colorPrimaryContainer">
+
+                                <!-- Divider -->
+                                <View
+                                    android:layout_width="match_parent"
+                                    android:layout_height="1dp"
+                                    android:background="?attr/colorPrimary"
+                                    android:alpha="0.2"
+                                    android:layout_marginBottom="16dp" />
 
                                 <TextView
-                                    android:id="@+id/template_variables_info"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:text="SMS: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%\nNotifications: %package%, %title%, %content%, %sentStamp%"
-                                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                                    android:textColor="?attr/colorOnSurfaceVariant"
-                                    android:typeface="monospace"
-                                    android:textSize="12sp" />
+                                    android:text="Available Variables:"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnPrimaryContainer"
+                                    android:textStyle="bold"
+                                    android:layout_marginBottom="12dp" />
+
+                                <!-- SMS Variables -->
+                                <LinearLayout
+                                    android:id="@+id/sms_variables_section"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:layout_marginBottom="16dp">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="SMS Messages:"
+                                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                                        android:textColor="?attr/colorOnPrimaryContainer"
+                                        android:textStyle="bold"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <com.google.android.material.chip.ChipGroup
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        app:chipSpacingHorizontal="8dp"
+                                        app:chipSpacingVertical="4dp">
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%from%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnSecondaryContainer"
+                                            app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%text%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnSecondaryContainer"
+                                            app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%sentStamp%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnSecondaryContainer"
+                                            app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%receivedStamp%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnSecondaryContainer"
+                                            app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%sim%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnSecondaryContainer"
+                                            app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                    </com.google.android.material.chip.ChipGroup>
+
+                                </LinearLayout>
+
+                                <!-- Push Notifications Variables -->
+                                <LinearLayout
+                                    android:id="@+id/push_variables_section"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:layout_marginBottom="16dp"
+                                    android:visibility="gone">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Push Notifications:"
+                                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                                        android:textColor="?attr/colorOnPrimaryContainer"
+                                        android:textStyle="bold"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <com.google.android.material.chip.ChipGroup
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        app:chipSpacingHorizontal="8dp"
+                                        app:chipSpacingVertical="4dp">
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%package%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnTertiaryContainer"
+                                            app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%title%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnTertiaryContainer"
+                                            app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%content%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnTertiaryContainer"
+                                            app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%text%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnTertiaryContainer"
+                                            app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%sentStamp%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnTertiaryContainer"
+                                            app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                    </com.google.android.material.chip.ChipGroup>
+
+                                </LinearLayout>
+
+                                <!-- Call Variables -->
+                                <LinearLayout
+                                    android:id="@+id/call_variables_section"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical"
+                                    android:layout_marginBottom="16dp"
+                                    android:visibility="gone">
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Phone Calls:"
+                                        android:textAppearance="@style/TextAppearance.App.LabelMedium"
+                                        android:textColor="?attr/colorOnPrimaryContainer"
+                                        android:textStyle="bold"
+                                        android:layout_marginBottom="8dp" />
+
+                                    <com.google.android.material.chip.ChipGroup
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        app:chipSpacingHorizontal="8dp"
+                                        app:chipSpacingVertical="4dp">
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%from%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnErrorContainer"
+                                            app:chipBackgroundColor="?attr/colorErrorContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%contact%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnErrorContainer"
+                                            app:chipBackgroundColor="?attr/colorErrorContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%timestamp%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnErrorContainer"
+                                            app:chipBackgroundColor="?attr/colorErrorContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                        <com.google.android.material.chip.Chip
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="%duration%"
+                                            android:textSize="12sp"
+                                            android:textColor="?attr/colorOnErrorContainer"
+                                            app:chipBackgroundColor="?attr/colorErrorContainer"
+                                            app:chipCornerRadius="12dp"
+                                            app:chipMinHeight="28dp"
+                                            android:clickable="false"
+                                            android:focusable="false"
+                                            style="@style/Widget.Material3.Chip.Assist" />
+
+                                    </com.google.android.material.chip.ChipGroup>
+
+                                </LinearLayout>
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="💡 Tap any variable to copy it to clipboard"
+                                    android:textAppearance="@style/TextAppearance.App.BodySmall"
+                                    android:textColor="?attr/colorOnPrimaryContainer"
+                                    android:alpha="0.9" />
 
                             </LinearLayout>
 

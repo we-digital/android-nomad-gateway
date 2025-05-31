@@ -3,6 +3,9 @@ package tech.wdg.incomingactivitygateway;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -98,11 +101,15 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private List<AppInfo> installedApps;
 
     // Template variables info
-    private TextView templateVariablesInfo;
     private LinearLayout templateVariablesHeader;
     private LinearLayout templateVariablesContent;
     private ImageView templateVariablesExpandIcon;
     private boolean isTemplateVariablesExpanded = false;
+
+    // Variable sections
+    private LinearLayout smsVariablesSection;
+    private LinearLayout pushVariablesSection;
+    private LinearLayout callVariablesSection;
 
     // Inner class for app information
     private static class AppInfo {
@@ -209,13 +216,20 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         addPhoneNumberButton.setOnClickListener(v -> addPhoneNumberField(""));
 
         // Template variables info
-        templateVariablesInfo = findViewById(R.id.template_variables_info);
         templateVariablesHeader = findViewById(R.id.template_variables_header);
         templateVariablesContent = findViewById(R.id.template_variables_content);
         templateVariablesExpandIcon = findViewById(R.id.template_variables_expand_icon);
 
+        // Variable sections
+        smsVariablesSection = findViewById(R.id.sms_variables_section);
+        pushVariablesSection = findViewById(R.id.push_variables_section);
+        callVariablesSection = findViewById(R.id.call_variables_section);
+
         // Setup template variables expand/collapse
         setupTemplateVariablesExpandable();
+
+        // Setup variable chip click listeners for copy functionality
+        setupVariableChipClickListeners();
     }
 
     private void loadConfigData() {
@@ -896,13 +910,19 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     }
 
     private void updateTemplateVariablesInfo(boolean isPush, boolean isCall) {
-        if (templateVariablesInfo != null) {
+        if (smsVariablesSection != null && pushVariablesSection != null && callVariablesSection != null) {
+            // Hide all sections first
+            smsVariablesSection.setVisibility(View.GONE);
+            pushVariablesSection.setVisibility(View.GONE);
+            callVariablesSection.setVisibility(View.GONE);
+
+            // Show appropriate section based on activity type
             if (isPush) {
-                templateVariablesInfo.setText("Push Notifications: %package%, %title%, %content%, %text%, %sentStamp%");
+                pushVariablesSection.setVisibility(View.VISIBLE);
             } else if (isCall) {
-                templateVariablesInfo.setText("Call Monitoring: %from%, %contact%, %timestamp%, %duration%");
+                callVariablesSection.setVisibility(View.VISIBLE);
             } else {
-                templateVariablesInfo.setText("SMS Messages: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%");
+                smsVariablesSection.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -974,12 +994,92 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             isTemplateVariablesExpanded = !isTemplateVariablesExpanded;
 
             if (isTemplateVariablesExpanded) {
+                // Expand with animation
                 templateVariablesContent.setVisibility(View.VISIBLE);
                 templateVariablesExpandIcon.setImageResource(R.drawable.ic_expand_less);
+
+                // Animate the icon rotation
+                templateVariablesExpandIcon.animate()
+                        .rotation(180f)
+                        .setDuration(200)
+                        .start();
+
             } else {
+                // Collapse with animation
                 templateVariablesContent.setVisibility(View.GONE);
                 templateVariablesExpandIcon.setImageResource(R.drawable.ic_expand_more);
+
+                // Animate the icon rotation
+                templateVariablesExpandIcon.animate()
+                        .rotation(0f)
+                        .setDuration(200)
+                        .start();
             }
         });
+    }
+
+    private void setupVariableChipClickListeners() {
+        // Find all variable chips and set click listeners
+        setupChipClickListener(smsVariablesSection);
+        setupChipClickListener(pushVariablesSection);
+        setupChipClickListener(callVariablesSection);
+    }
+
+    private void setupChipClickListener(LinearLayout section) {
+        if (section != null) {
+            // Find ChipGroup within the section
+            for (int i = 0; i < section.getChildCount(); i++) {
+                View child = section.getChildAt(i);
+                if (child instanceof com.google.android.material.chip.ChipGroup) {
+                    com.google.android.material.chip.ChipGroup chipGroup = (com.google.android.material.chip.ChipGroup) child;
+
+                    // Set touch listener for each chip to prevent default behavior
+                    for (int j = 0; j < chipGroup.getChildCount(); j++) {
+                        View chipChild = chipGroup.getChildAt(j);
+                        if (chipChild instanceof com.google.android.material.chip.Chip) {
+                            com.google.android.material.chip.Chip chip = (com.google.android.material.chip.Chip) chipChild;
+
+                            // Completely disable all default behaviors
+                            chip.setClickable(false);
+                            chip.setFocusable(false);
+                            chip.setLongClickable(false);
+                            chip.setContextClickable(false);
+
+                            // Remove any existing click listeners
+                            chip.setOnClickListener(null);
+                            chip.setOnLongClickListener(null);
+
+                            // Use touch listener to handle copy action with visual feedback
+                            chip.setOnTouchListener((v, event) -> {
+                                switch (event.getAction()) {
+                                    case android.view.MotionEvent.ACTION_DOWN:
+                                        // Provide visual feedback on press
+                                        v.setAlpha(0.7f);
+                                        return true;
+                                    case android.view.MotionEvent.ACTION_UP:
+                                        // Reset visual state and copy to clipboard
+                                        v.setAlpha(1.0f);
+                                        copyToClipboard(chip.getText().toString());
+                                        return true;
+                                    case android.view.MotionEvent.ACTION_CANCEL:
+                                        // Reset visual state if touch is cancelled
+                                        v.setAlpha(1.0f);
+                                        return true;
+                                }
+                                return true; // Consume all touch events
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void copyToClipboard(String text) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText("Template Variable", text);
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(this, "Copied " + text + " to clipboard", Toast.LENGTH_SHORT).show();
     }
 }
