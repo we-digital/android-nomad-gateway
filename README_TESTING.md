@@ -21,7 +21,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 📱 SMS Rule
 - **Activity Type**: SMS
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook-test/android-activity`
+- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
 - **Template**:
 ```json
 {
@@ -36,7 +36,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 📞 Call Rule
 - **Activity Type**: Calls
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook-test/android-activity`
+- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
 - **Template**:
 ```json
 {
@@ -51,7 +51,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 🔔 Push Rule
 - **Activity Type**: Push
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook-test/android-activity`
+- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
 - **Template**:
 ```json
 {
@@ -86,7 +86,7 @@ Open the app on the emulator and create three forwarding rules:
 
 ## 🔧 Webhook Configuration
 
-**Endpoint**: `https://static-conv-n8n.teknologia.org/webhook-test/android-activity`
+**Endpoint**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
 
 **Note**: The webhook needs to be activated in n8n test mode before testing. Click the "Test workflow" button in n8n, then run the tests.
 
@@ -136,7 +136,7 @@ adb shell settings get secure enabled_notification_listeners
 
 ### Manual Webhook Test
 ```bash
-curl -X POST 'https://static-conv-n8n.teknologia.org/webhook-test/android-activity' \
+curl -X POST 'https://static-conv-n8n.teknologia.org/webhook/android-activity' \
   -H 'Content-Type: application/json' \
   -d '{"test":"manual","timestamp":"'$(date +%s)'"}'
 ```
@@ -144,101 +144,4 @@ curl -X POST 'https://static-conv-n8n.teknologia.org/webhook-test/android-activi
 ## 📱 Emulator Commands
 
 ### Start Emulator
-```bash
-export ANDROID_HOME=~/Library/Android/sdk
-export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
-emulator -avd Medium_Phone_API_36.0 -no-snapshot-load
 ```
-
-### SMS Simulation
-```bash
-# Via ADB
-adb emu sms send +1234567890 "Test message"
-
-# Via telnet console
-telnet localhost 5554
-sms send +1234567890 "Test message"
-exit
-```
-
-### Call Simulation
-```bash
-# Via ADB
-adb emu gsm call +1234567890
-adb emu gsm cancel +1234567890
-
-# Via telnet console
-telnet localhost 5554
-gsm call +1234567890
-gsm cancel +1234567890
-exit
-```
-
-## 🎯 Expected Results
-
-When tests are successful, the webhook should receive:
-
-### SMS Payload
-```json
-{
-  "from": "+1234567890",
-  "text": "Automated test SMS message - [timestamp]",
-  "timestamp": "[unix_timestamp]",
-  "sim": "sim1",
-  "type": "sms"
-}
-```
-
-### Call Payload
-```json
-{
-  "from": "+1987654321",
-  "contact": "Unknown",
-  "timestamp": "[unix_timestamp]",
-  "duration": "[seconds]",
-  "type": "call"
-}
-```
-
-### Push Payload
-```json
-{
-  "app": "com.android.chrome",
-  "title": "Test Push Notification",
-  "content": "Test notification from script",
-  "message": "[notification_text]",
-  "timestamp": "[unix_timestamp]",
-  "type": "push"
-}
-```
-
-## ⚠️ Important Notes
-
-1. **Webhook Activation**: The n8n webhook must be in test mode and activated before running tests
-2. **Permissions**: All critical permissions are automatically granted by the setup script
-3. **Notification Access**: Must be manually enabled in Android settings for push notifications
-4. **App Configuration**: Forwarding rules must be created in the app before testing
-5. **Emulator**: Tests require a running Android emulator with Google Play Services
-
-## 🔄 Troubleshooting
-
-### No SMS Received
-- Check if default SMS app is set
-- Verify phone number format
-- Check emulator console connection
-
-### No Call Events
-- Ensure phone permissions are granted
-- Verify call is ringing (not just dialing)
-- Check CallBroadcastReceiver registration
-
-### No Push Notifications
-- Enable notification access in Settings
-- Install notification-capable apps
-- Check NotificationListenerService status
-
-### Webhook Issues
-- Verify internet connection in emulator
-- Check webhook URL is correct and activated
-- Test webhook manually with curl
-- Check app logs for HTTP errors 
