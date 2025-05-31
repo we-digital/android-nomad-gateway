@@ -1,2 +1,2 @@
-rootProject.name='Incoming Sms Gateway'
+rootProject.name='Android Nomad Gateway'
 include ':app'
