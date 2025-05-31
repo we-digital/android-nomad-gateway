@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.4] - 2025-05-31
+
+### Added
+- Fix APK signing for physical device installation
+
+
 ## [1.1.3] - 2025-05-31
 
 ### Added
