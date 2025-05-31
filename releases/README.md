@@ -17,15 +17,16 @@ Android Nomad Gateway is a free, open-source Android app that automatically forw
 
 ## 📦 Latest Release
 
-**Version:** 1.1.6
+**Version:** 1.1.7
 **Release Date:** 2025-05-31
-**Download:** [android-nomad-gateway-v1.1.6.apk](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.6/android-nomad-gateway-v1.1.6.apk)
-**Release Notes:** [View Details](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.6)
+**Download:** [android-nomad-gateway-v1.1.7.apk](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.7/android-nomad-gateway-v1.1.7.apk)
+**Release Notes:** [View Details](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.7)
 
 ## 📋 All Releases
 
 | Version | Date | Download | Release Notes | Size |
 |---------|------|----------|---------------|------|
+| 1.1.7 | 2025-05-31 | [APK](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.7/android-nomad-gateway-v1.1.7.apk) | [Notes](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.7) | 7.4M |
 | 1.1.6 | 2025-05-31 | [APK](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.6/android-nomad-gateway-v1.1.6.apk) | [Notes](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.6) | 7.4M |
 | 1.1.5 | 2025-05-31 | [APK](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.5/android-nomad-gateway-v1.1.5.apk) | [Notes](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.5) | 7.4M |
 | 1.1.4 | 2025-05-31 | [APK](https://github.com/we-digital/android-nomad-gateway/releases/download/v1.1.4/android-nomad-gateway-v1.1.4.apk) | [Notes](https://github.com/we-digital/android-nomad-gateway/releases/tag/v1.1.4) | 7.4M |

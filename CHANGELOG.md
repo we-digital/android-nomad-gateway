@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.7] - 2025-05-31
+
+### Added
+- Test unified release workflow with single commit
+
+
 ## [1.1.6] - 2025-05-31
 
 ### Added
