@@ -259,11 +259,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private void showAddDialog() {
-        if (configDialog != null) {
-            configDialog.cleanup();
-        }
-        configDialog = new ForwardingConfigDialog(context, getLayoutInflater(), adapter);
-        configDialog.showNew();
+        Intent intent = new Intent(this, ForwardingRuleEditActivity.class);
+        intent.putExtra(ForwardingRuleEditActivity.EXTRA_IS_NEW, true);
+        startActivity(intent);
     }
 
     private void refreshList() {
@@ -276,11 +274,10 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     // Implement ForwardingRulesAdapter.OnRuleActionListener
     @Override
     public void onRuleEdit(ForwardingConfig config) {
-        if (configDialog != null) {
-            configDialog.cleanup();
-        }
-        configDialog = new ForwardingConfigDialog(context, getLayoutInflater(), adapter);
-        configDialog.showEdit(config);
+        Intent intent = new Intent(this, ForwardingRuleEditActivity.class);
+        intent.putExtra(ForwardingRuleEditActivity.EXTRA_IS_NEW, false);
+        intent.putExtra(ForwardingRuleEditActivity.EXTRA_CONFIG_KEY, config.getKey());
+        startActivity(intent);
     }
 
     @Override
@@ -296,10 +293,15 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh the list when returning from edit activity
+        refreshList();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (configDialog != null) {
-            configDialog.cleanup();
-        }
+        // No need to cleanup dialog anymore
     }
 }
