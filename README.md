@@ -187,7 +187,3 @@ $decoded = json_decode($payload, true);
 <img src="https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_operator_btn.png" alt="Operator Button Settings" style="max-height: 500px;">
 
 *Additional settings options including operator-specific configurations and advanced forwarding parameters.*
-
-### Misc
-
-This repository contains a stable app with minimum functionality. It is not archived, but not actively developing. If you need an app with merged PRs - try [this fork](https://github.com/scottmconway/android_income_sms_gateway_webhook)
