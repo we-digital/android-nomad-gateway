@@ -37,7 +37,20 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
 
         if (TelephonyManager.ACTION_PHONE_STATE_CHANGED.equals(action)) {
             String state = intent.getStringExtra(TelephonyManager.EXTRA_STATE);
-            String phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+
+            // Handle deprecated EXTRA_INCOMING_NUMBER
+            String phoneNumber = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                // For Android 10+, incoming number is restricted for privacy
+                // We need to use CallLog to get the number after the call
+                if (TelephonyManager.EXTRA_STATE_RINGING.equals(state)) {
+                    // For ringing state, we can try to get the most recent call log entry
+                    phoneNumber = getLatestIncomingNumber();
+                }
+            } else {
+                // For older versions, use the deprecated method
+                phoneNumber = intent.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
+            }
 
             if (TelephonyManager.EXTRA_STATE_RINGING.equals(state) && phoneNumber != null) {
                 handleIncomingCall(phoneNumber);
@@ -147,5 +160,40 @@ public class CallBroadcastReceiver extends BroadcastReceiver {
                 .build();
 
         WorkManager.getInstance(context).enqueue(workRequest);
+    }
+
+    private String getLatestIncomingNumber() {
+        try {
+            // Query the call log for the most recent incoming call
+            String[] projection = {
+                    CallLog.Calls.NUMBER,
+                    CallLog.Calls.TYPE,
+                    CallLog.Calls.DATE
+            };
+
+            String selection = CallLog.Calls.TYPE + " = ?";
+            String[] selectionArgs = { String.valueOf(CallLog.Calls.INCOMING_TYPE) };
+            String sortOrder = CallLog.Calls.DATE + " DESC LIMIT 1";
+
+            Cursor cursor = context.getContentResolver().query(
+                    CallLog.Calls.CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    sortOrder);
+
+            if (cursor != null && cursor.moveToFirst()) {
+                String number = cursor.getString(cursor.getColumnIndexOrThrow(CallLog.Calls.NUMBER));
+                cursor.close();
+                return number;
+            }
+
+            if (cursor != null) {
+                cursor.close();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting latest incoming number: " + e.getMessage());
+        }
+        return null;
     }
 }

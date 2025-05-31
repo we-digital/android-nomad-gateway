@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
@@ -39,6 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+
 public class MainActivity extends AppCompatActivity implements ForwardingRulesAdapter.OnRuleActionListener {
 
     private static final String TAG = "MainActivity";
@@ -61,6 +65,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     private static final int PERMISSION_REQUEST_CODE = 100;
     private static final int NOTIFICATION_LISTENER_REQUEST_CODE = 101;
 
+    // Modern activity result launcher
+    private ActivityResultLauncher<Intent> notificationSettingsLauncher;
+
     // All critical permissions the app needs
     private static final String[] REQUIRED_PERMISSIONS = {
             Manifest.permission.RECEIVE_SMS,
@@ -78,6 +85,20 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initialize modern activity result launcher
+        notificationSettingsLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // Check if notification listener was enabled
+                    if (isNotificationListenerEnabled()) {
+                        showInfo("Notification access enabled! The app is now ready for push notification forwarding.");
+                    } else {
+                        showInfo("Notification access not enabled. Push notification forwarding will not work.");
+                    }
+                    // Initialize app regardless of result
+                    initializeApp();
+                });
 
         // Set up toolbar
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
@@ -156,10 +177,10 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
                                 "This permission allows the app to read notifications from other apps and forward them to your configured webhooks.\n\n"
                                 +
                                 "You can enable this later in Settings if you prefer.")
-                .setPositiveButton("Enable Now", (dialog, which) -> {
+                .setPositiveButton("Open Settings", (dialog, which) -> {
                     try {
                         Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
-                        startActivityForResult(intent, NOTIFICATION_LISTENER_REQUEST_CODE);
+                        notificationSettingsLauncher.launch(intent);
                     } catch (Exception e) {
                         showInfo(
                                 "Please enable notification access manually in Settings → Apps & notifications → Special app access → Notification access");
@@ -240,22 +261,6 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
                 // Still check notification listener access
                 checkNotificationListenerAccess();
             }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == NOTIFICATION_LISTENER_REQUEST_CODE) {
-            // Check if notification listener was enabled
-            if (isNotificationListenerEnabled()) {
-                showInfo("Notification access enabled! The app is now ready for push notification forwarding.");
-            } else {
-                showInfo("Notification access not enabled. Push notification forwarding will not work.");
-            }
-            // Initialize app regardless of result
-            initializeApp();
         }
     }
 
@@ -342,12 +347,24 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private boolean isServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (tech.wdg.incomingactivitygateway.SmsReceiverService.class.getName()
-                    .equals(service.service.getClassName())) {
-                return true;
+        // Modern approach: Check if service is running by trying to bind to it
+        // or use a shared preference to track service state
+        try {
+            ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            if (manager != null) {
+                // For API 26+, getRunningServices is limited to own services only
+                // This is actually fine for our use case since we're checking our own service
+                for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+                    if (tech.wdg.incomingactivitygateway.SmsReceiverService.class.getName()
+                            .equals(service.service.getClassName())) {
+                        return true;
+                    }
+                }
             }
+        } catch (Exception e) {
+            // Fallback: check if service was started via shared preferences
+            SharedPreferences prefs = getSharedPreferences("service_state", MODE_PRIVATE);
+            return prefs.getBoolean("service_running", false);
         }
         return false;
     }
@@ -452,17 +469,25 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
 
-        Log.d(TAG, "Memory trim requested: " + level);
-
-        // Handle memory pressure
         switch (level) {
+            // Background memory trim levels (still supported)
+            case TRIM_MEMORY_BACKGROUND:
             case TRIM_MEMORY_UI_HIDDEN:
-                // UI is hidden, can release UI-related resources
+                // App moved to background, perform light cleanup
+                performMemoryCleanup();
                 break;
-            case TRIM_MEMORY_RUNNING_MODERATE:
-            case TRIM_MEMORY_RUNNING_LOW:
-            case TRIM_MEMORY_RUNNING_CRITICAL:
-                // App is running but system is low on memory
+
+            // Critical memory situations
+            case TRIM_MEMORY_COMPLETE:
+                // System is running very low on memory, aggressive cleanup
+                performMemoryCleanup();
+                if (adapter != null) {
+                    adapter.notifyDataSetChanged();
+                }
+                break;
+
+            default:
+                // Handle other memory pressure levels
                 performMemoryCleanup();
                 break;
         }

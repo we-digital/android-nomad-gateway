@@ -92,8 +92,12 @@ public class ForwardingConfigDialog {
         builder.setNeutralButton(R.string.btn_test, null);
 
         final AlertDialog dialog = builder.show();
-        Objects.requireNonNull(dialog.getWindow())
-                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        // Note: SOFT_INPUT_ADJUST_RESIZE is deprecated in API 30+
+        // Modern apps should handle window insets properly instead
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+            Objects.requireNonNull(dialog.getWindow())
+                    .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(view1 -> {
@@ -148,8 +152,12 @@ public class ForwardingConfigDialog {
         builder.setNeutralButton(R.string.btn_test, null);
 
         final AlertDialog dialog = builder.show();
-        Objects.requireNonNull(dialog.getWindow())
-                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        // Note: SOFT_INPUT_ADJUST_RESIZE is deprecated in API 30+
+        // Modern apps should handle window insets properly instead
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) {
+            Objects.requireNonNull(dialog.getWindow())
+                    .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        }
 
         dialog.getButton(AlertDialog.BUTTON_POSITIVE)
                 .setOnClickListener(view1 -> {

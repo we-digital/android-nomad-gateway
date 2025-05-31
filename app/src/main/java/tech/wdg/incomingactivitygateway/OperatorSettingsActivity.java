@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SubscriptionInfo;
 import android.telephony.SubscriptionManager;
@@ -159,7 +160,8 @@ public class OperatorSettingsActivity extends AppCompatActivity {
 
         try {
             TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            SubscriptionManager subscriptionManager = SubscriptionManager.from(this);
+            SubscriptionManager subscriptionManager = (SubscriptionManager) getSystemService(
+                    Context.TELEPHONY_SUBSCRIPTION_SERVICE);
 
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
@@ -171,7 +173,23 @@ public class OperatorSettingsActivity extends AppCompatActivity {
                         String operatorName = subscription.getCarrierName() != null
                                 ? subscription.getCarrierName().toString()
                                 : "Unknown Operator";
-                        String phoneNumber = subscription.getNumber();
+
+                        // Use getDisplayName() instead of deprecated getNumber()
+                        String phoneNumber = "Unknown";
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            // For Android 13+, phone numbers are restricted
+                            phoneNumber = "Protected";
+                        } else {
+                            // For older versions, try to get the number
+                            try {
+                                String number = subscription.getNumber();
+                                if (number != null && !number.isEmpty()) {
+                                    phoneNumber = number;
+                                }
+                            } catch (Exception e) {
+                                Log.w(TAG, "Could not get phone number", e);
+                            }
+                        }
 
                         SimCardInfo simInfo = new SimCardInfo(slotIndex, operatorName, phoneNumber, true);
                         loadCustomSimSettings(simInfo);
@@ -324,7 +342,8 @@ public class OperatorSettingsActivity extends AppCompatActivity {
 
         // Try to get operator name if available
         try {
-            SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+            SubscriptionManager subscriptionManager = (SubscriptionManager) context
+                    .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
             if (ActivityCompat.checkSelfPermission(context,
                     Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 List<SubscriptionInfo> subscriptions = subscriptionManager.getActiveSubscriptionInfoList();
@@ -358,15 +377,27 @@ public class OperatorSettingsActivity extends AppCompatActivity {
 
         // Try to get actual phone number if available
         try {
-            SubscriptionManager subscriptionManager = SubscriptionManager.from(context);
+            SubscriptionManager subscriptionManager = (SubscriptionManager) context
+                    .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
             if (ActivityCompat.checkSelfPermission(context,
                     Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 List<SubscriptionInfo> subscriptions = subscriptionManager.getActiveSubscriptionInfoList();
                 if (subscriptions != null) {
                     for (SubscriptionInfo subscription : subscriptions) {
                         if (subscription.getSimSlotIndex() == slotIndex) {
-                            String number = subscription.getNumber();
-                            return number != null && !number.isEmpty() ? number : "sim" + (slotIndex + 1);
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                // For Android 13+, phone numbers are restricted
+                                return "sim" + (slotIndex + 1);
+                            } else {
+                                // For older versions, try to get the number
+                                try {
+                                    String number = subscription.getNumber();
+                                    return (number != null && !number.isEmpty()) ? number : "sim" + (slotIndex + 1);
+                                } catch (Exception e) {
+                                    Log.w(TAG, "Could not get phone number", e);
+                                    return "sim" + (slotIndex + 1);
+                                }
+                            }
                         }
                     }
                 }

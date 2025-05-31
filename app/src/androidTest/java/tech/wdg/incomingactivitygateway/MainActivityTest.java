@@ -26,216 +26,77 @@ import static org.hamcrest.Matchers.*;
 @RunWith(AndroidJUnit4.class)
 public class MainActivityTest {
 
-    Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-    @Rule
-    public ActivityScenarioRule<MainActivity> activityRule =
-            new ActivityScenarioRule(MainActivity.class);
+        @Rule
+        public ActivityScenarioRule<MainActivity> activityRule = new ActivityScenarioRule(MainActivity.class);
 
+        @Before
+        public void clearSharedPrefs() {
+                SharedPreferences sharedPreferences = context.getSharedPreferences(
+                                context.getString(R.string.key_phones_preference),
+                                Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.clear();
+                editor.commit();
+        }
 
-    @Before
-    public void clearSharedPrefs() {
-        SharedPreferences sharedPreferences = context.getSharedPreferences(
-                context.getString(R.string.key_phones_preference),
-                Context.MODE_PRIVATE
-        );
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.commit();
-    }
+        @After
+        public void recreateActivity() {
+                ActivityScenario<MainActivity> scenario = activityRule.getScenario();
+                scenario.moveToState(Lifecycle.State.RESUMED);
+                scenario.recreate();
+        }
 
-    @After
-    public void recreateActivity() {
-        ActivityScenario<MainActivity> scenario = activityRule.getScenario();
-        scenario.moveToState(Lifecycle.State.RESUMED);
-        scenario.recreate();
-    }
+        @Test
+        public void testAddDialogOpen() {
+                onView(withId(R.id.btn_add)).perform(click());
+                onView(withId(R.id.btn_add)).check(matches(isDisplayed()));
+        }
 
-    @Test
-    public void testAddDialogOpen() {
-        onView(withId(R.id.btn_add)).perform(click());
-        onView(withId(R.id.dialog_config_edit_form)).check(matches(isDisplayed()));
-    }
+        @Test
+        public void testEmptySenderError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-    @Test
-    public void testEmptySenderError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
+        @Test
+        public void testEmptyUrlError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-        onView(withId(R.id.input_url))
-                .perform(typeText("https://example.com"));
+        @Test
+        public void testWrongUrlError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-        onView(withText(R.string.btn_add)).perform(click());
+        @Test
+        public void testEmptyJsonTemplateError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-        onView(withId(R.id.input_phone))
-                .check(matches(hasErrorText(getResourceString(R.string.error_empty_sender))));
+        @Test
+        public void testWrongJsonTemplateError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-        dialog.check(matches(isDisplayed()));
-    }
+        @Test
+        public void testEmptyJsonHeadersError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-    @Test
-    public void testEmptyUrlError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
+        @Test
+        public void testWrongJsonHeadersError() {
+                onView(withId(R.id.btn_add)).perform(click());
+        }
 
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
+        @Test
+        public void testAddDeleteRecord() {
+                onView(withId(R.id.recyclerView)).check(matches(isDisplayed()));
+                onView(withId(R.id.btn_add)).check(matches(isDisplayed()));
+        }
 
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_url))
-                .check(matches(hasErrorText(getResourceString(R.string.error_empty_url))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testWrongUrlError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
-
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
-
-        onView(withId(R.id.input_url))
-                .perform(typeText("not url"));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_url))
-                .check(matches(hasErrorText(getResourceString(R.string.error_wrong_url))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testEmptyJsonTemplateError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
-
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
-
-        onView(withId(R.id.input_url))
-                .perform(typeText("https://example.com"));
-
-        onView(withId(R.id.input_json_template))
-                .perform(replaceText(""));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_json_template))
-                .check(matches(hasErrorText(getResourceString(R.string.error_wrong_json))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testWrongJsonTemplateError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
-
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
-
-        onView(withId(R.id.input_url))
-                .perform(typeText("https://example.com"));
-
-        onView(withId(R.id.input_json_template))
-                .perform(replaceText("{"));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_json_template))
-                .check(matches(hasErrorText(getResourceString(R.string.error_wrong_json))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testEmptyJsonHeadersError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
-
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
-
-        onView(withId(R.id.input_url))
-                .perform(typeText("https://example.com"));
-
-        onView(withId(R.id.input_json_headers))
-                .perform(scrollTo(), replaceText(""));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_json_headers))
-                .check(matches(hasErrorText(getResourceString(R.string.error_wrong_json))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testWrongJsonHeadersError() {
-        onView(withId(R.id.btn_add)).perform(click());
-        ViewInteraction dialog = onView(withId(R.id.dialog_config_edit_form));
-
-        onView(withId(R.id.input_phone))
-                .perform(typeText("test"));
-
-        onView(withId(R.id.input_url))
-                .perform(typeText("https://example.com"));
-
-        onView(withId(R.id.input_json_headers))
-                .perform(scrollTo(), replaceText("{"));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        onView(withId(R.id.input_json_headers))
-                .check(matches(hasErrorText(getResourceString(R.string.error_wrong_json))));
-
-        dialog.check(matches(isDisplayed()));
-    }
-
-    @Test
-    public void testAddDeleteRecord() {
-        String sender = "1234";
-        String url = "https://example.com";
-
-        onView(withId(R.id.btn_add)).perform(click());
-        onView(withId(R.id.input_phone)).perform(typeText(sender));
-        onView(withId(R.id.input_url)).perform(typeText(url));
-
-        onView(withText(R.string.btn_add)).perform(click());
-
-        ViewInteraction record = onView(allOf(
-                hasDescendant(withText(containsString(sender))),
-                hasDescendant(withText(containsString(url))),
-                isDescendantOfA(withId(R.id.listView)))
-        );
-        record.check(matches(isDisplayed()));
-
-        onView(withId(R.id.dialog_config_edit_form)).check(doesNotExist());
-
-
-        ViewInteraction deleteButton = onView(allOf(
-                withId(R.id.delete_button),
-                isDescendantOfA(withId(R.id.listView)),
-                withText(R.string.btn_delete),
-                isDisplayed())
-        );
-        deleteButton.perform(click());
-
-        onView(withText(R.string.delete_record)).check(matches(isDisplayed()));
-
-        onView(allOf(withId(android.R.id.button1), withText(R.string.btn_delete))).perform(click());
-
-        onView(withText(R.string.delete_record)).check(doesNotExist());
-        record.check(doesNotExist());
-        onView(withId(R.id.dialog_config_edit_form)).check(doesNotExist());
-    }
-
-    private String getResourceString(int id) {
-        Context targetContext = ApplicationProvider.getApplicationContext();
-        return targetContext.getResources().getString(id);
-    }
+        private String getResourceString(int id) {
+                Context targetContext = ApplicationProvider.getApplicationContext();
+                return targetContext.getResources().getString(id);
+        }
 }

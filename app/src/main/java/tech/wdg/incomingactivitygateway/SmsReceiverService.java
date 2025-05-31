@@ -52,12 +52,11 @@ public class SmsReceiverService extends Service {
 
             notificationManager.createNotificationChannel(channel);
 
-            Notification notification =
-                    new Notification.Builder(this, CHANNEL_ID)
-                            .setSmallIcon(R.drawable.ic_f)
-                            .setColor(getColor(R.color.colorPrimary))
-                            .setOngoing(true)
-                            .build();
+            Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_f)
+                    .setColor(getColor(R.color.colorPrimary))
+                    .setOngoing(true)
+                    .build();
 
             startForeground(1, notification);
         }
@@ -70,7 +69,7 @@ public class SmsReceiverService extends Service {
         unregisterReceiver(receiver);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            stopForeground(true);
+            stopForeground(STOP_FOREGROUND_REMOVE);
         }
     }
 

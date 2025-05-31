@@ -32,6 +32,7 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
         }
 
         Object[] pdus = (Object[]) bundle.get("pdus");
+        String format = bundle.getString("format");
         if (pdus == null || pdus.length == 0) {
             return;
         }
@@ -39,7 +40,11 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
         StringBuilder content = new StringBuilder();
         final SmsMessage[] messages = new SmsMessage[pdus.length];
         for (int i = 0; i < pdus.length; i++) {
-            messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            if (format != null) {
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i], format);
+            } else {
+                messages[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
+            }
             content.append(messages[i].getDisplayMessageBody());
         }
 
