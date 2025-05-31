@@ -1,0 +1,98 @@
+{
+    "webhook": {
+        "url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+        "method": "POST",
+        "headers": {
+            "Content-Type": "application/json",
+            "User-Agent": "Android-Nomad-Gateway-Test/1.0"
+        }
+    },
+    "test_data": {
+        "sms": {
+            "from": "+1234567890",
+            "message": "Test SMS message from automated testing",
+            "expected_template": {
+                "from": "%from%",
+                "text": "%text%",
+                "timestamp": "%sentStamp%",
+                "sim": "%sim%"
+            }
+        },
+        "call": {
+            "from": "+1987654321",
+            "duration": 5,
+            "expected_template": {
+                "from": "%from%",
+                "contact": "%contact%",
+                "timestamp": "%timestamp%",
+                "duration": "%duration%"
+            }
+        },
+        "push": {
+            "package": "com.android.chrome",
+            "title": "Test Notification",
+            "content": "This is a test push notification",
+            "expected_template": {
+                "app": "%package%",
+                "title": "%title%",
+                "content": "%content%",
+                "message": "%text%",
+                "timestamp": "%sentStamp%"
+            }
+        }
+    },
+    "forwarding_rules": [
+        {
+            "name": "SMS Test Rule",
+            "activity_type": "SMS",
+            "all_sources": true,
+            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "template": {
+                "from": "%from%",
+                "text": "%text%",
+                "timestamp": "%sentStamp%",
+                "sim": "%sim%",
+                "type": "sms"
+            },
+            "headers": {
+                "Content-Type": "application/json",
+                "User-Agent": "SMS Forwarder App"
+            }
+        },
+        {
+            "name": "Call Test Rule",
+            "activity_type": "CALL",
+            "all_sources": true,
+            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "template": {
+                "from": "%from%",
+                "contact": "%contact%",
+                "timestamp": "%timestamp%",
+                "duration": "%duration%",
+                "type": "call"
+            },
+            "headers": {
+                "Content-Type": "application/json",
+                "User-Agent": "SMS Forwarder App"
+            }
+        },
+        {
+            "name": "Push Test Rule",
+            "activity_type": "PUSH",
+            "all_sources": true,
+            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "template": {
+                "app": "%package%",
+                "title": "%title%",
+                "content": "%content%",
+                "message": "%text%",
+                "timestamp": "%sentStamp%",
+                "type": "push"
+            },
+            "headers": {
+                "Content-Type": "application/json",
+                "User-Agent": "SMS Forwarder App"
+            }
+        }
+    ]
+}
