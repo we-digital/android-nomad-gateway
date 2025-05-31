@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Sms Forwarder</string>
+    <string name="app_name">Activity Forwarder</string>
     <string name="permission_needed">Set permission to access SMS to use this app.</string>
     <string name="input_phone">66123456789</string>
     <string name="input_url">https://example.com</string>

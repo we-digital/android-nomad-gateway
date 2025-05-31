@@ -110,6 +110,11 @@
         <item name="android:textSize">28sp</item>
         <item name="android:letterSpacing">0</item>
     </style>
+
+    <style name="TextAppearance.App.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">24sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
     
     <style name="TextAppearance.App.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
         <item name="android:textSize">@dimen/text_size_title</item>
@@ -117,28 +122,43 @@
     </style>
     
     <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textSize">@dimen/text_size_subtitle</item>
-        <item name="android:letterSpacing">0.0125</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    
+    <style name="TextAppearance.App.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="android:textSize">@dimen/text_size_subtitle</item>
-        <item name="android:letterSpacing">0.015</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TextAppearance.App.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
-        <item name="android:textSize">@dimen/text_size_body</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
+    <style name="TextAppearance.App.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TextAppearance.App.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">@dimen/text_size_body</item>
-        <item name="android:letterSpacing">0.01</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <style name="TextAppearance.App.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
-        <item name="android:textSize">@dimen/text_size_caption</item>
-        <item name="android:letterSpacing">0.015</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    
+    <style name="TextAppearance.App.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textSize">11sp</item>
+        <item name="android:letterSpacing">0</item>
     </style>
     
     <!-- Shape styles -->
