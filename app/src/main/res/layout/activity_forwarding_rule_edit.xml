@@ -134,64 +134,109 @@
 
                     </LinearLayout>
 
-                    <!-- App Selector for Push Notifications -->
+                    <!-- All Sources Switch -->
                     <LinearLayout
-                        android:id="@+id/app_selector_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginBottom="20dp"
-                        android:visibility="gone">
+                        android:layout_marginBottom="20dp">
+
+                        <com.google.android.material.materialswitch.MaterialSwitch
+                            android:id="@+id/switch_all_sources"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Forward from all sources"
+                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                            android:paddingVertical="12dp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Select App (Optional)"
-                            android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                            android:textColor="?attr/colorOnSurface"
-                            android:layout_marginBottom="8dp" />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:hint="Choose an app or enter package name"
-                            app:boxCornerRadiusTopStart="12dp"
-                            app:boxCornerRadiusTopEnd="12dp"
-                            app:boxCornerRadiusBottomStart="12dp"
-                            app:boxCornerRadiusBottomEnd="12dp">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/app_selector_dropdown"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
+                            android:text="Enable to forward from all phone numbers (SMS) or all apps (Push notifications)"
+                            android:textAppearance="@style/TextAppearance.App.BodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginTop="4dp" />
 
                     </LinearLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout
+                    <!-- Source Filtering Container -->
+                    <LinearLayout
+                        android:id="@+id/source_filtering_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        android:hint="Source identifier"
-                        app:helperText="SMS: phone number, Push: app package name, or * for any"
-                        app:helperTextEnabled="true"
-                        app:startIconDrawable="@drawable/ic_edit"
-                        app:boxCornerRadiusTopStart="12dp"
-                        app:boxCornerRadiusTopEnd="12dp"
-                        app:boxCornerRadiusBottomStart="12dp"
-                        app:boxCornerRadiusBottomEnd="12dp">
+                        android:orientation="vertical">
 
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/input_sender"
+                        <!-- App Selector for Push Notifications -->
+                        <LinearLayout
+                            android:id="@+id/app_selector_container"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:inputType="text" />
+                            android:orientation="vertical"
+                            android:layout_marginBottom="20dp"
+                            android:visibility="gone">
 
-                    </com.google.android.material.textfield.TextInputLayout>
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Select App"
+                                android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                android:textColor="?attr/colorOnSurface"
+                                android:layout_marginBottom="8dp" />
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                                android:hint="Choose an app"
+                                app:boxCornerRadiusTopStart="12dp"
+                                app:boxCornerRadiusTopEnd="12dp"
+                                app:boxCornerRadiusBottomStart="12dp"
+                                app:boxCornerRadiusBottomEnd="12dp">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/app_selector_dropdown"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="none" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- SMS Phone Number Field -->
+                        <LinearLayout
+                            android:id="@+id/sms_phone_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="16dp"
+                            android:visibility="visible">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:id="@+id/input_sender_layout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                                android:hint="Phone number"
+                                app:helperText="Enter phone number"
+                                app:helperTextEnabled="true"
+                                app:startIconDrawable="@drawable/ic_edit"
+                                app:boxCornerRadiusTopStart="12dp"
+                                app:boxCornerRadiusTopEnd="12dp"
+                                app:boxCornerRadiusBottomStart="12dp"
+                                app:boxCornerRadiusBottomEnd="12dp">
+
+                                <com.google.android.material.textfield.TextInputEditText
+                                    android:id="@+id/input_sender"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:inputType="phone" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"

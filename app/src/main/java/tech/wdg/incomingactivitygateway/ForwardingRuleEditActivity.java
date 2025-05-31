@@ -61,6 +61,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     // App selection (for push notifications)
     private AutoCompleteTextView appSelectorDropdown;
     private LinearLayout appSelectorContainer;
+    private String selectedAppPackage; // Store selected app package for push notifications
+
+    // All sources switch and filtering
+    private MaterialSwitch allSourcesSwitch;
+    private LinearLayout sourceFilteringContainer;
+    private TextInputLayout senderInputLayout;
+    private LinearLayout smsPhoneContainer;
 
     // Template fields - both key and value
     private TextInputEditText templateFromKeyInput;
@@ -117,6 +124,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         initializeViews();
         loadInstalledApps();
         setupActivityTypeHandling();
+        setupAllSourcesHandling();
         loadConfigData();
         setupClickListeners();
     }
@@ -146,6 +154,12 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // App selection (for push notifications)
         appSelectorDropdown = findViewById(R.id.app_selector_dropdown);
         appSelectorContainer = findViewById(R.id.app_selector_container);
+
+        // All sources switch and filtering
+        allSourcesSwitch = findViewById(R.id.switch_all_sources);
+        sourceFilteringContainer = findViewById(R.id.source_filtering_container);
+        senderInputLayout = findViewById(R.id.input_sender_layout);
+        smsPhoneContainer = findViewById(R.id.sms_phone_container);
 
         // Template fields - both key and value
         templateFromKeyInput = findViewById(R.id.input_template_from_key);
@@ -241,7 +255,31 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     }
 
     private void populateFields() {
-        senderInput.setText(config.getSender());
+        // Handle "All sources" switch
+        if ("*".equals(config.getSender())) {
+            allSourcesSwitch.setChecked(true);
+            sourceFilteringContainer.setVisibility(View.GONE);
+            senderInput.setText(""); // Clear the field since it's not used
+            selectedAppPackage = null; // Clear app selection
+        } else {
+            allSourcesSwitch.setChecked(false);
+            sourceFilteringContainer.setVisibility(View.VISIBLE);
+
+            // Set the appropriate field based on activity type
+            if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
+                selectedAppPackage = config.getSender();
+                // Find and set the app in dropdown
+                for (int i = 0; i < installedApps.size(); i++) {
+                    if (installedApps.get(i).packageName.equals(selectedAppPackage)) {
+                        appSelectorDropdown.setText(installedApps.get(i).toString(), false);
+                        break;
+                    }
+                }
+            } else {
+                senderInput.setText(config.getSender());
+            }
+        }
+
         urlInput.setText(config.getUrl());
         retriesInput.setText(String.valueOf(config.getRetriesNumber()));
         ignoreSslSwitch.setChecked(config.getIgnoreSsl());
@@ -383,7 +421,17 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         }
 
         // Save basic fields
-        config.setSender(senderInput.getText().toString().trim());
+        if (allSourcesSwitch.isChecked()) {
+            config.setSender("*");
+        } else {
+            if (chipTypePush.isChecked()) {
+                // For push notifications, use selected app package
+                config.setSender(selectedAppPackage != null ? selectedAppPackage : "");
+            } else {
+                // For SMS, use phone number from text field
+                config.setSender(senderInput.getText().toString().trim());
+            }
+        }
         config.setUrl(urlInput.getText().toString().trim());
         config.setRetriesNumber(Integer.parseInt(retriesInput.getText().toString()));
         config.setIgnoreSsl(ignoreSslSwitch.isChecked());
@@ -414,10 +462,21 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private boolean validateInputs() {
         boolean isValid = true;
 
-        // Validate sender
-        if (TextUtils.isEmpty(senderInput.getText())) {
-            senderInput.setError("Sender is required");
-            isValid = false;
+        // Validate sender only if "All sources" is not enabled
+        if (!allSourcesSwitch.isChecked()) {
+            if (chipTypePush.isChecked()) {
+                // For push notifications, validate app selection
+                if (selectedAppPackage == null || selectedAppPackage.isEmpty()) {
+                    Toast.makeText(this, "Please select an app for push notifications", Toast.LENGTH_SHORT).show();
+                    isValid = false;
+                }
+            } else {
+                // For SMS, validate phone number
+                if (TextUtils.isEmpty(senderInput.getText())) {
+                    senderInput.setError("Phone number is required");
+                    isValid = false;
+                }
+            }
         }
 
         // Validate URL
@@ -597,7 +656,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Handle app selection
         appSelectorDropdown.setOnItemClickListener((parent, view, position, id) -> {
             AppInfo selectedApp = (AppInfo) parent.getItemAtPosition(position);
-            senderInput.setText(selectedApp.packageName);
+            selectedAppPackage = selectedApp.packageName;
         });
     }
 
@@ -632,10 +691,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     }
 
     private void updateUIForPushNotifications() {
-        // Update sender field hint
-        TextInputLayout senderLayout = (TextInputLayout) senderInput.getParent().getParent();
-        senderLayout.setHint("App package name");
-        senderLayout.setHelperText("Enter app package name or select from dropdown, use * for all apps");
+        // Show app selector for push notifications (only if not using "All sources")
+        if (!allSourcesSwitch.isChecked()) {
+            appSelectorContainer.setVisibility(View.VISIBLE);
+        }
+
+        // Hide SMS phone number field for push notifications
+        smsPhoneContainer.setVisibility(View.GONE);
 
         // Update template variables info
         updateTemplateVariablesInfo(true);
@@ -647,10 +709,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     }
 
     private void updateUIForSMS() {
-        // Update sender field hint
-        TextInputLayout senderLayout = (TextInputLayout) senderInput.getParent().getParent();
-        senderLayout.setHint("Phone number");
-        senderLayout.setHelperText("Enter phone number or use * for all numbers");
+        // Hide app selector for SMS
+        appSelectorContainer.setVisibility(View.GONE);
+
+        // Show SMS phone number field (only if not using "All sources")
+        if (!allSourcesSwitch.isChecked()) {
+            smsPhoneContainer.setVisibility(View.VISIBLE);
+        }
 
         // Update template variables info
         updateTemplateVariablesInfo(false);
@@ -669,5 +734,26 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 templateVariablesInfo.setText("SMS Messages: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%");
             }
         }
+    }
+
+    private void setupAllSourcesHandling() {
+        allSourcesSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                // Hide source filtering fields when "All" is enabled
+                sourceFilteringContainer.setVisibility(View.GONE);
+            } else {
+                // Show source filtering fields when "All" is disabled
+                sourceFilteringContainer.setVisibility(View.VISIBLE);
+
+                // Update container visibility based on activity type
+                if (chipTypePush.isChecked()) {
+                    appSelectorContainer.setVisibility(View.VISIBLE);
+                    smsPhoneContainer.setVisibility(View.GONE);
+                } else {
+                    appSelectorContainer.setVisibility(View.GONE);
+                    smsPhoneContainer.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 }
