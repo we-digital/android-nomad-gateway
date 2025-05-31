@@ -28,6 +28,19 @@
 # Keep activities for proper lifecycle
 -keep class tech.wdg.incomingactivitygateway.*Activity { *; }
 
+# Fix R8 missing classes issues
+-dontwarn java.lang.reflect.AnnotatedType
+-dontwarn javax.lang.model.element.Modifier
+-dontwarn org.apache.commons.lang3.reflect.TypeUtils
+
+# Keep Apache Commons Lang3 reflection utilities
+-keep class org.apache.commons.lang3.reflect.** { *; }
+-dontwarn org.apache.commons.lang3.reflect.**
+
+# Keep Error Prone annotations
+-keep class com.google.errorprone.annotations.** { *; }
+-dontwarn com.google.errorprone.annotations.**
+
 # Modern optimization settings
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*
 -optimizationpasses 5
@@ -88,6 +101,6 @@
 # Keep annotation classes
 -keep @interface *
 
-# Modern memory optimization
+# Modern memory optimization - Enable for release builds
 -dontshrink
 -dontoptimize

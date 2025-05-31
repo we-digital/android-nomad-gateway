@@ -51,8 +51,8 @@ show_usage() {
 build_release() {
     print_info "Building release APK..."
     
-    # Clean and build release
-    ./gradlew clean assembleRelease
+    # Clean and build release with suppressed warnings for cleaner output
+    ./gradlew clean assembleRelease --warning-mode=summary
     
     # Check if APK was created
     local apk_path="app/build/outputs/apk/release/app-release.apk"

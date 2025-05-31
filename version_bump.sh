@@ -211,7 +211,7 @@ $message"
 build_and_verify() {
     print_info "Building project to verify changes..."
     
-    if ./gradlew assembleDebug --quiet; then
+    if ./gradlew assembleDebug --quiet --warning-mode=summary; then
         print_success "Build successful! ✨"
     else
         print_error "Build failed! Rolling back changes..."
