@@ -63,3 +63,10 @@ fastlane/readme.md
 
 # Android Profiling
 *.hprof
+
+# Backup files
+*.backup
+*.tmp
+
+# Release artifacts (keep in releases/ directory only)
+releases/
