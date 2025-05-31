@@ -59,9 +59,9 @@ build_release() {
     if [ -f "$apk_path" ]; then
         print_success "Release APK built successfully: $apk_path"
         
-        # Show APK info
-        local apk_size=$(du -h "$apk_path" | cut -f1)
-        print_info "APK size: $apk_size"
+        # Show APK info and store size for README update
+        APK_SIZE=$(du -h "$apk_path" | cut -f1)
+        print_info "APK size: $APK_SIZE"
         
         # Copy to releases directory
         mkdir -p releases
@@ -176,6 +176,70 @@ create_github_release() {
     fi
 }
 
+# Function to update releases README
+update_releases_readme() {
+    local version=$1
+    local message=$2
+    local apk_size=$3
+    local date=$(date +"%Y-%m-%d")
+    
+    print_info "Updating releases README.md..."
+    
+    local readme_file="releases/README.md"
+    local temp_file=$(mktemp)
+    
+    # Read the current README and update it
+    awk -v version="$version" -v date="$date" -v message="$message" -v size="$apk_size" '
+    BEGIN {
+        repo_base = "https://github.com/we-digital/android-nomad-gateway"
+        updated_latest = 0
+        updated_table = 0
+    }
+    
+    # Update latest release section
+    /^\*\*Version:\*\*/ {
+        print "**Version:** " version
+        updated_latest = 1
+        next
+    }
+    /^\*\*Release Date:\*\*/ {
+        print "**Release Date:** " date
+        next
+    }
+    /^\*\*Download:\*\*/ {
+        print "**Download:** [android-nomad-gateway-v" version ".apk](" repo_base "/releases/download/v" version "/android-nomad-gateway-v" version ".apk)"
+        next
+    }
+    /^\*\*Release Notes:\*\*/ {
+        print "**Release Notes:** [View Details](" repo_base "/releases/tag/v" version ")"
+        next
+    }
+    
+    # Update releases table - add new release after header
+    /^\| Version \| Date \| Download \| Release Notes \| Size \|$/ {
+        print $0
+        getline # Skip the separator line
+        print $0
+        # Add new release entry
+        print "| " version " | " date " | [APK](" repo_base "/releases/download/v" version "/android-nomad-gateway-v" version ".apk) | [Notes](" repo_base "/releases/tag/v" version ") | " size " |"
+        updated_table = 1
+        next
+    }
+    
+    # Update last updated date
+    /^\*Last updated:/ {
+        print "*Last updated: " date "*"
+        next
+    }
+    
+    # Print all other lines as-is
+    { print }
+    ' "$readme_file" > "$temp_file"
+    
+    mv "$temp_file" "$readme_file"
+    print_success "Updated releases README.md"
+}
+
 # Main function
 main() {
     print_info "🚀 Android Nomad Gateway Release Script"
@@ -234,14 +298,19 @@ main() {
     print_info "Step 5/6: Creating GitHub release"
     create_github_release "$new_version" "$release_message"
     
-    # Step 6: Final summary
-    print_info "Step 6/6: Release summary"
+    # Step 6: Update releases README
+    print_info "Step 6/6: Updating releases README"
+    update_releases_readme "$new_version" "$release_message" "$APK_SIZE"
+    
+    # Final summary
+    print_info "Release summary"
     echo ""
     print_success "🎉 Release v$new_version completed successfully!"
     echo ""
     print_info "📦 Release artifacts:"
     echo "  • APK: releases/android-nomad-gateway-v$new_version.apk"
     echo "  • Release notes: releases/release-notes-v$new_version.md"
+    echo "  • Releases README: releases/README.md (updated)"
     echo "  • Git tag: v$new_version"
     echo ""
     print_info "🚀 Next steps:"

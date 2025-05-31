@@ -67,6 +67,3 @@ fastlane/readme.md
 # Backup files
 *.backup
 *.tmp
-
-# Release artifacts (keep in releases/ directory only)
-releases/
