@@ -39,4 +39,5 @@
     <string name="confirm_delete">Do you really want to delete "%s" record?</string>
     <string name="notification_channel">Default</string>
     <string name="menu_syslog">Syslog</string>
+    <string name="menu_settings">Settings</string>
 </resources>

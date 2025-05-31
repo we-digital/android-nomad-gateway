@@ -72,6 +72,12 @@
             android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme" />
+
     </application>
 
 </manifest>

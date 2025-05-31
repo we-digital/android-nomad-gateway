@@ -125,86 +125,28 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_bar_syslogs) {
-            showSystemLogs();
+        if (id == R.id.action_bar_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void showSystemLogs() {
-        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(context);
-        View view = getLayoutInflater().inflate(R.layout.syslogs, null);
-
-        String logs = "";
-        try {
-            String[] command = new String[] {
-                    "logcat", "-d", "*:E", "-m", "1000",
-                    "|", "grep", "tech.wdg.incomingactivitygateway" };
-            Process process = Runtime.getRuntime().exec(command);
-
-            BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                logs += line + "\n";
-            }
-        } catch (IOException ex) {
-            logs = "getLog failed";
-        }
-
-        TextView logsTextContainer = view.findViewById(R.id.syslogs_text);
-        logsTextContainer.setText(logs);
-
-        TextView version = view.findViewById(R.id.syslogs_version);
-        version.setText("v" + BuildConfig.VERSION_NAME);
-
-        builder.setView(view);
-        builder.setNegativeButton(R.string.btn_close, null);
-        builder.setNeutralButton(R.string.btn_clear, null);
-
-        final androidx.appcompat.app.AlertDialog dialog = builder.show();
-        Objects.requireNonNull(dialog.getWindow())
-                .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-
-        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL)
-                .setOnClickListener(view1 -> {
-                    String[] command = new String[] { "logcat", "-c" };
-                    try {
-                        Runtime.getRuntime().exec(command);
-                    } catch (IOException e) {
-                        Log.e("SmsGateway", "log clear error: " + e);
-                    }
-                    dialog.cancel();
-                });
-    }
-
     private void showList() {
-        showInfo("Active and forwarding messages");
-        updateServiceStatus();
-
         context = this;
 
-        ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
-
-        // Set up RecyclerView
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
-
-        adapter = new ForwardingRulesAdapter(context, configs, this);
+        // Initialize adapter with empty list initially
+        adapter = new ForwardingRulesAdapter(this, new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Set up filter chips
+        // Setup filter chips
         setupFilterChips();
 
-        // Update UI based on list size
-        updateEmptyState(configs.size());
-        updateChipCount(configs.size());
-
-        // Set up FAB
+        // Setup FAB
         ExtendedFloatingActionButton fab = findViewById(R.id.btn_add);
-        fab.setOnClickListener(v -> showAddDialog());
+        fab.setOnClickListener(view -> showAddDialog());
 
         // Add scroll listener to collapse/expand FAB
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -218,13 +160,20 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             }
         });
 
-        if (!this.isServiceRunning()) {
-            this.startService();
+        // Load and display rules
+        refreshList();
+
+        // Update service status
+        updateServiceStatus();
+
+        // Start service if not running
+        if (!isServiceRunning()) {
+            startService();
         }
     }
 
-    private void updateEmptyState(int count) {
-        if (count == 0) {
+    private void updateEmptyState(int itemCount) {
+        if (itemCount == 0) {
             emptyState.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
         } else {
@@ -234,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private void updateChipCount(int count) {
-        chipCount.setText(count + " " + (count == 1 ? "Rule" : "Rules"));
+        chipCount.setText(count + " Rules");
     }
 
     private void updateServiceStatus() {
