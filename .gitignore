@@ -7,6 +7,7 @@ local.properties
 
 # Android Studio generated files
 .idea/
+.vscode/
 *.iml
 .externalNativeBuild
 .cxx/
