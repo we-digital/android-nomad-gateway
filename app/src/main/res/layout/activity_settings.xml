@@ -751,7 +751,7 @@
                         android:id="@+id/about_text"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Proudly Vibe-coded by @wedigital using Claude \ Cursor"
+                        android:text="Proudly Vibe-coded by @wedigital using Claude \ Cursor \ Chang beer"
                         android:textAppearance="@style/TextAppearance.App.BodyMedium"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:lineSpacingExtra="2dp" />

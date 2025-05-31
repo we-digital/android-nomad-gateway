@@ -128,7 +128,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void setupClickableText() {
-        String text = "Proudly Vibe-coded by @wedigital using Claude \\ Cursor";
+        String text = "Proudly Vibe-coded by @wedigital using Claude \\ Cursor \\ Chang beer";
         SpannableString spannableString = new SpannableString(text);
 
         // Find the @wedigital part
