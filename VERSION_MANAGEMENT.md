@@ -68,14 +68,14 @@ The project uses semantic versioning (SemVer) with automated scripts for version
 ```
 
 **What it does:**
-1. ✅ Runs version bump workflow
-2. ✅ Builds release APK with optimizations
+1. ✅ Updates version numbers in build.gradle and CHANGELOG.md
+2. ✅ Builds release APK with debug signing
 3. ✅ Runs test suite
 4. ✅ Generates comprehensive release notes
-5. ✅ Creates GitHub release with APK attachment
-6. ✅ Copies APK to `releases/` directory
-7. ✅ Updates releases README.md with new release info
-8. ✅ Commits all release artifacts to git
+5. ✅ Updates releases README.md with new release info
+6. ✅ Creates unified git commit with all release artifacts
+7. ✅ Creates git tag for the release
+8. ✅ Publishes GitHub release with APK attachment (if gh CLI available)
 9. ✅ Provides next steps guidance
 
 ## 📁 File Structure

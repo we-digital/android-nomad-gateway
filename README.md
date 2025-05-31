@@ -49,13 +49,8 @@ Forward notifications from specific apps with title, content, and app informatio
 
 ## Download apk
 
-Download apk from [release page](https://github.com/bogkonstantin/android_income_sms_gateway_webhook/releases)
+Download apk from [release page](https://github.com/we-digital/android-nomad-gateway/releases/)
 
-Or download it from F-Droid
-
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/tech.bogomolov.incomingsmsgateway/)
 
 ## Development & Release Management
 
@@ -149,7 +144,6 @@ curl -X 'POST' 'https://yourwebsite.com/path' \
    3. Use this payload as a sample `{"text":"sms from %from% with text: \"%text%\" sent at %sentStamp%"}`
    4. Save configuration
 
-<img alt="Incoming SMS Webhook Gateway screenshot Telegram example" src="https://raw.githubusercontent.com/bogkonstantin/android_income_sms_gateway_webhook/master/fastlane/metadata/android/en-US/images/phoneScreenshots/telegram.png" width="30%"/> 
 
 ### Process Payload in PHP scripts
 
@@ -158,9 +152,6 @@ Since $_POST is an array from the url-econded payload, you need to get the raw p
 $payload = file_get_contents('php://input');
 $decoded = json_decode($payload, true);
 ```
-
-### Screenshots
-<img alt="Incoming SMS Webhook Gateway screenshot 1" src="https://raw.githubusercontent.com/bogkonstantin/android_income_sms_gateway_webhook/master/fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="30%"/> <img alt="Incoming SMS Webhook Gateway screenshot 2" src="https://raw.githubusercontent.com/bogkonstantin/android_income_sms_gateway_webhook/master/fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="30%"/> <img alt="Incoming SMS Webhook Gateway screenshot 3" src="https://raw.githubusercontent.com/bogkonstantin/android_income_sms_gateway_webhook/master/fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="30%"/>
 
 ### Misc
 
