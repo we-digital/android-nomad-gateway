@@ -153,6 +153,34 @@ $payload = file_get_contents('php://input');
 $decoded = json_decode($payload, true);
 ```
 
+### Screenshots
+
+#### Main Interface
+![Main Screen - Default View](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_default.png)
+*The main screen showing the clean, modern Material Design 3 interface when no forwarding rules are configured yet.*
+
+![Main Screen - With Active Rule](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/main_with_rule.png)
+*The main screen displaying an active forwarding rule configuration with the status indicator showing the app is listening for incoming activities.*
+
+#### Adding New Forwarding Rules
+![Add New Rule](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_add.png)
+*The rule creation interface where users can configure new forwarding rules for SMS, calls, or notifications with sender/app filtering options.*
+
+#### Template Configuration
+![Rule Template Editor](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_template.png)
+*The template editor showing how to customize JSON payloads using template variables like %from%, %text%, %sentStamp%, etc. for flexible webhook integration.*
+
+#### HTTP Headers Configuration
+![Rule Headers Setup](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/rule_headers.png)
+*The HTTP headers configuration screen allowing users to add custom headers for authentication or other webhook requirements.*
+
+#### Settings and Configuration
+![SIM Name Settings](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_sim_name.png)
+*Settings screen for configuring SIM card names and identifiers, useful for dual-SIM devices to distinguish between different carriers.*
+
+![Operator Button Settings](https://github.com/we-digital/android-nomad-gateway/raw/main/public_img/settings_operator_btn.png)
+*Additional settings options including operator-specific configurations and advanced forwarding parameters.*
+
 ### Misc
 
 This repository contains a stable app with minimum functionality. It is not archived, but not actively developing. If you need an app with merged PRs - try [this fork](https://github.com/scottmconway/android_income_sms_gateway_webhook)
