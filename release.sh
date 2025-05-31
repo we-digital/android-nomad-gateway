@@ -55,7 +55,7 @@ build_release() {
     ./gradlew clean assembleRelease --warning-mode=summary
     
     # Check if APK was created
-    local apk_path="app/build/outputs/apk/release/app-release.apk"
+    local apk_path="app/build/outputs/apk/release/app-release-unsigned.apk"
     if [ -f "$apk_path" ]; then
         print_success "Release APK built successfully: $apk_path"
         
