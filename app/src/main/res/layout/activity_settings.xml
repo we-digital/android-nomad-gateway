@@ -394,6 +394,19 @@
 
                     </LinearLayout>
 
+                    <!-- Operator Settings Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_operator_settings"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Operator Settings"
+                        android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                        app:icon="@drawable/ic_call"
+                        app:iconGravity="start"
+                        android:textColor="?attr/colorPrimary"
+                        app:strokeColor="?attr/colorPrimary" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

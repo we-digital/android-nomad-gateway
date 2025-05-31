@@ -283,8 +283,10 @@ public class ForwardingConfigDialog {
         }
 
         Thread thread = new Thread(() -> {
+            // Use the new operator settings for SIM name
+            String simName = OperatorSettingsActivity.getSimName(context, 0); // Use first SIM for testing
             String payload = config.prepareMessage(
-                    "123456789", "test message", "sim1", System.currentTimeMillis());
+                    "123456789", "test message", simName, System.currentTimeMillis());
             Request request = new Request(config.getUrl(), payload);
             request.setJsonHeaders(config.getHeaders());
             request.setIgnoreSsl(config.getIgnoreSsl());

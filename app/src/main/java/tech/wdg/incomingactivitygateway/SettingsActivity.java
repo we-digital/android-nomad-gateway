@@ -3,6 +3,7 @@ package tech.wdg.incomingactivitygateway;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,6 +32,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Chip chipSmsPermission;
     private MaterialButton btnRefreshLogs;
     private MaterialButton btnClearLogs;
+    private MaterialButton btnOperatorSettings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,11 +71,13 @@ public class SettingsActivity extends AppCompatActivity {
         chipSmsPermission = findViewById(R.id.chip_sms_permission);
         btnRefreshLogs = findViewById(R.id.btn_refresh_logs);
         btnClearLogs = findViewById(R.id.btn_clear_logs);
+        btnOperatorSettings = findViewById(R.id.btn_operator_settings);
     }
 
     private void setupClickListeners() {
         btnRefreshLogs.setOnClickListener(v -> loadSystemLogs());
         btnClearLogs.setOnClickListener(v -> clearSystemLogs());
+        btnOperatorSettings.setOnClickListener(v -> openOperatorSettings());
     }
 
     private void loadSystemLogs() {
@@ -176,6 +180,11 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
         return false;
+    }
+
+    private void openOperatorSettings() {
+        Intent intent = new Intent(this, OperatorSettingsActivity.class);
+        startActivity(intent);
     }
 
     @Override

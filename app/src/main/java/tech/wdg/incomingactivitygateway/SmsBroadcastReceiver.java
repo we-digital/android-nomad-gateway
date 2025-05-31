@@ -76,7 +76,8 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
             }
 
             if (slotId > 0) {
-                slotName = "sim" + slotId;
+                // Use the new operator settings to get SIM name
+                slotName = OperatorSettingsActivity.getSimName(context, slotId - 1);
             }
 
             this.callWebHook(config, sender, slotName, content.toString(), messages[0].getTimestampMillis());

@@ -40,4 +40,21 @@
     <string name="notification_channel">Default</string>
     <string name="menu_syslog">Syslog</string>
     <string name="menu_settings">Settings</string>
+    
+    <!-- Operator Settings -->
+    <string name="operator_settings_title">Operator Settings</string>
+    <string name="sim_information_title">SIM Information</string>
+    <string name="sim_cards_title">SIM Cards</string>
+    <string name="current_configuration_title">Current Configuration</string>
+    <string name="enable_sim_info">Include real SIM information in forwarded messages</string>
+    <string name="sim_info_description">When disabled, generic names like \'sim1\', \'sim2\' will be used instead of real operator information for privacy.</string>
+    <string name="configure_sim_cards">Configure custom names and numbers for your SIM cards</string>
+    <string name="refresh_sim_info">Refresh SIM Information</string>
+    <string name="privacy_mode">Privacy Mode</string>
+    <string name="active_sim_cards">Active SIM Cards</string>
+    <string name="custom_sim_name">Custom SIM Name</string>
+    <string name="custom_phone_number">Custom Phone Number</string>
+    <string name="leave_empty_operator">Leave empty to use operator name</string>
+    <string name="leave_empty_number">Leave empty to use detected number</string>
+    <string name="operator_settings">Operator Settings</string>
 </resources>
