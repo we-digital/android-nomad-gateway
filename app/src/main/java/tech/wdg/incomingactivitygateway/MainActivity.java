@@ -2,11 +2,14 @@ package tech.wdg.incomingactivitygateway;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +36,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements ForwardingRulesAdapter.OnRuleActionListener {
@@ -54,7 +58,17 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     private Chip chipFilterPush;
     private Chip chipFilterCalls;
 
-    private static final int PERMISSION_CODE = 0;
+    private static final int PERMISSION_REQUEST_CODE = 100;
+    private static final int NOTIFICATION_LISTENER_REQUEST_CODE = 101;
+
+    // All critical permissions the app needs
+    private static final String[] REQUIRED_PERMISSIONS = {
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.READ_PHONE_STATE,
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_PHONE_NUMBERS
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +84,13 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         setSupportActionBar(toolbar);
 
         // Initialize views
+        initializeViews();
+
+        // Check and request all necessary permissions
+        checkAndRequestPermissions();
+    }
+
+    private void initializeViews() {
         recyclerView = findViewById(R.id.recyclerView);
         emptyState = findViewById(R.id.empty_state);
         chipStatus = findViewById(R.id.chip_status);
@@ -82,13 +103,108 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         chipFilterSms = findViewById(R.id.chip_filter_sms);
         chipFilterPush = findViewById(R.id.chip_filter_push);
         chipFilterCalls = findViewById(R.id.chip_filter_calls);
+    }
 
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[] { Manifest.permission.RECEIVE_SMS }, PERMISSION_CODE);
-        } else {
-            showList();
+    private void checkAndRequestPermissions() {
+        List<String> permissionsToRequest = new ArrayList<>();
+
+        // Check all required permissions
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(permission);
+            }
         }
+
+        // Add notification permission for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permissionsToRequest.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+
+        if (!permissionsToRequest.isEmpty()) {
+            // Show explanation dialog before requesting permissions
+            showPermissionExplanationDialog(permissionsToRequest);
+        } else {
+            // All regular permissions granted, check notification listener access
+            checkNotificationListenerAccess();
+        }
+    }
+
+    private void checkNotificationListenerAccess() {
+        if (!isNotificationListenerEnabled()) {
+            showNotificationListenerDialog();
+        } else {
+            // All permissions granted, proceed with app initialization
+            initializeApp();
+        }
+    }
+
+    private boolean isNotificationListenerEnabled() {
+        ComponentName cn = new ComponentName(this, NotificationListenerService.class);
+        String flat = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
+        return flat != null && flat.contains(cn.flattenToString());
+    }
+
+    private void showNotificationListenerDialog() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Enable Notification Access")
+                .setMessage(
+                        "To forward push notifications from other apps, Activity Gateway needs special notification access.\n\n"
+                                +
+                                "This permission allows the app to read notifications from other apps and forward them to your configured webhooks.\n\n"
+                                +
+                                "You can enable this later in Settings if you prefer.")
+                .setPositiveButton("Enable Now", (dialog, which) -> {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+                        startActivityForResult(intent, NOTIFICATION_LISTENER_REQUEST_CODE);
+                    } catch (Exception e) {
+                        showInfo(
+                                "Please enable notification access manually in Settings → Apps & notifications → Special app access → Notification access");
+                        initializeApp();
+                    }
+                })
+                .setNegativeButton("Skip", (dialog, which) -> {
+                    showInfo(
+                            "Push notification forwarding will not work without notification access. You can enable it later in Settings.");
+                    initializeApp();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void showPermissionExplanationDialog(List<String> permissionsToRequest) {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Permissions Required")
+                .setMessage("Activity Gateway needs several permissions to function properly:\n\n" +
+                        "• SMS Access - To receive and forward SMS messages\n" +
+                        "• Phone State - To identify SIM cards and monitor calls\n" +
+                        "• Call Log - To detect incoming calls\n" +
+                        "• Contacts - To resolve phone numbers to names\n" +
+                        "• Phone Numbers - To identify your phone numbers\n" +
+                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                                ? "• Notifications - To show service status\n"
+                                : "")
+                        +
+                        "\nYou can review and manage these permissions anytime in Settings.")
+                .setPositiveButton("Grant Permissions", (dialog, which) -> {
+                    requestPermissions(permissionsToRequest);
+                })
+                .setNegativeButton("Skip", (dialog, which) -> {
+                    // Initialize app with limited functionality
+                    showInfo(
+                            "Some features may not work without required permissions. You can grant them later in Settings.");
+                    initializeApp();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void requestPermissions(List<String> permissionsToRequest) {
+        String[] permissionsArray = permissionsToRequest.toArray(new String[0]);
+        ActivityCompat.requestPermissions(this, permissionsArray, PERMISSION_REQUEST_CODE);
     }
 
     @Override
@@ -96,45 +212,54 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode != PERMISSION_CODE) {
-            return;
-        }
-        for (int i = 0; i < permissions.length; i++) {
-            if (!permissions[i].equals(Manifest.permission.RECEIVE_SMS)) {
-                continue;
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            // Count granted permissions
+            int grantedCount = 0;
+            int deniedCount = 0;
+
+            for (int result : grantResults) {
+                if (result == PackageManager.PERMISSION_GRANTED) {
+                    grantedCount++;
+                } else {
+                    deniedCount++;
+                }
             }
 
-            if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
-                showList();
+            // Show result to user
+            if (deniedCount == 0) {
+                showInfo("All permissions granted! Checking notification access...");
+                // Check notification listener access after regular permissions
+                checkNotificationListenerAccess();
+            } else if (grantedCount > 0) {
+                showInfo(grantedCount
+                        + " permissions granted. Some features may be limited. You can grant remaining permissions in Settings.");
+                // Still check notification listener access
+                checkNotificationListenerAccess();
             } else {
-                showInfo(getResources().getString(R.string.permission_needed));
-                emptyState.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
+                showInfo("Permissions denied. You can grant them later in Settings for full functionality.");
+                // Still check notification listener access
+                checkNotificationListenerAccess();
             }
-
-            return;
         }
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.action_bar_menu, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_bar_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+        if (requestCode == NOTIFICATION_LISTENER_REQUEST_CODE) {
+            // Check if notification listener was enabled
+            if (isNotificationListenerEnabled()) {
+                showInfo("Notification access enabled! The app is now ready for push notification forwarding.");
+            } else {
+                showInfo("Notification access not enabled. Push notification forwarding will not work.");
+            }
+            // Initialize app regardless of result
+            initializeApp();
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
-    private void showList() {
+    private void initializeApp() {
         context = this;
 
         // Initialize adapter with empty list initially
@@ -171,6 +296,24 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         if (!isServiceRunning()) {
             startService();
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.action_bar_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.action_bar_settings) {
+            Intent intent = new Intent(this, SettingsActivity.class);
+            startActivity(intent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     private void updateEmptyState(int itemCount) {

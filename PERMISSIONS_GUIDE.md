@@ -41,17 +41,19 @@ This document provides a comprehensive overview of all permissions required by t
 
 #### 6. Post Notifications (Android 13+)
 - **Permission**: `android.permission.POST_NOTIFICATIONS`
-- **Purpose**: Display service status and forwarding notifications
-- **Status**: Displayed in Settings → Permissions Status → "Notifications"
-- **Required**: Yes on Android 13+ - For user notifications
+- **Purpose**: Allow the app to display its own notifications (service status, forwarding confirmations)
+- **Status**: Displayed in Settings → Permissions Status → "Post Notifications"
+- **Required**: Yes on Android 13+ - For app notifications
 - **Note**: Only visible on Android 13+ devices
+- **Request**: Automatically requested on first app start
 
-#### 7. Notification Listener Service
+#### 7. Read Notifications (Special Permission)
 - **Permission**: `android.permission.BIND_NOTIFICATION_LISTENER_SERVICE`
-- **Purpose**: Access and forward push notifications from other apps
-- **Status**: Displayed in Settings → Permissions Status → "Notification Access"
-- **Required**: Yes - For push notification forwarding
-- **Special**: Requires manual activation in system settings
+- **Purpose**: Read notifications from other apps to forward them via webhooks
+- **Status**: Displayed in Settings → Permissions Status → "Read Notifications"
+- **Required**: Yes - For push notification forwarding (core feature)
+- **Special**: Cannot be requested programmatically - requires manual user action
+- **Request**: App guides user to system settings on first start
 
 ### 🌐 Network Permissions (Automatically Granted)
 
@@ -115,8 +117,8 @@ The Settings activity now displays comprehensive permission status:
 - Phone Numbers
 
 #### Notification Permissions Section
-- Notifications (Android 13+ only)
-- Notification Access (Special permission)
+- Post Notifications (Android 13+ only)
+- Read Notifications (Special permission)
 
 ### User Actions
 
@@ -126,7 +128,7 @@ The Settings activity now displays comprehensive permission status:
 - **Grant required permissions** for full functionality
 
 #### For Notification Listener
-- **Tap "Notification Access" chip** → Opens Notification Listener Settings
+- **Tap "Read Notifications" chip** → Opens Notification Listener Settings
 - **Navigate to**: Settings → Apps & notifications → Special app access → Notification access
 - **Enable "Activity Gateway"** for push notification forwarding
 
@@ -148,8 +150,8 @@ The Settings activity now displays comprehensive permission status:
 
 ### Push Notification Forwarding
 **Required Permissions**:
-- ✅ Notification Access (special permission)
-- ✅ Notifications (Android 13+)
+- ✅ Read Notifications (special permission)
+- ✅ Post Notifications (Android 13+)
 
 ### Background Operation
 **Required Permissions**:
@@ -172,7 +174,7 @@ The Settings activity now displays comprehensive permission status:
 3. Verify call forwarding rules are enabled
 
 #### "Push notifications not forwarding"
-1. Check Notification Access permission (special)
+1. Check Read Notifications permission (special)
 2. Verify notification forwarding rules
 3. Ensure target apps are not excluded
 
@@ -190,7 +192,7 @@ The Settings activity now displays comprehensive permission status:
 4. **Restart service** if needed
 
 #### For Notification Listener:
-1. **Tap "Notification Access"** chip in Settings
+1. **Tap "Read Notifications"** chip in Settings
 2. **Find "Activity Gateway"** in the list
 3. **Toggle ON** the permission
 4. **Return to app** → Status will update
@@ -221,6 +223,66 @@ The Settings activity now displays comprehensive permission status:
 2. **Explain Clearly**: Document purpose of each permission
 3. **Handle Gracefully**: App functions with partial permissions
 4. **Update Transparently**: Show real-time permission status
+
+## Enhanced Permission Request Flow
+
+### First App Launch Experience
+The app now provides a comprehensive permission setup flow:
+
+1. **Permission Explanation Dialog**
+   - Shows before requesting any permissions
+   - Explains why each permission is needed
+   - User can choose "Grant Permissions" or "Skip"
+
+2. **System Permission Requests**
+   - Requests all critical permissions at once:
+     - SMS Access
+     - Phone State
+     - Call Log
+     - Contacts
+     - Phone Numbers
+     - Post Notifications (Android 13+)
+
+3. **Notification Access Setup**
+   - After regular permissions, checks notification listener access
+   - Shows explanation dialog for special permission
+   - Guides user to system settings if they choose to enable
+
+4. **Graceful Handling**
+   - App works with partial permissions
+   - Clear feedback on what's granted/denied
+   - Users can grant permissions later via Settings
+
+### Permission Request Dialogs
+
+#### Regular Permissions Dialog
+```
+Title: "Permissions Required"
+Message: "Activity Gateway needs several permissions to function properly:
+
+• SMS Access - To receive and forward SMS messages
+• Phone State - To identify SIM cards and monitor calls  
+• Call Log - To detect incoming calls
+• Contacts - To resolve phone numbers to names
+• Phone Numbers - To identify your phone numbers
+• Notifications - To show service status (Android 13+)
+
+You can review and manage these permissions anytime in Settings."
+
+Buttons: [Grant Permissions] [Skip]
+```
+
+#### Notification Access Dialog
+```
+Title: "Enable Notification Access"
+Message: "To forward push notifications from other apps, Activity Gateway needs special notification access.
+
+This permission allows the app to read notifications from other apps and forward them to your configured webhooks.
+
+You can enable this later in Settings if you prefer."
+
+Buttons: [Enable Now] [Skip]
+```
 
 ## Conclusion
 

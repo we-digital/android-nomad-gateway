@@ -266,7 +266,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="8dp"
-                        android:text="Create your first rule to start forwarding SMS messages to webhooks"
+                        android:text="Create your first rule to start forwarding your activities to webhooks"
                         android:textAppearance="@style/TextAppearance.App.BodyLarge"
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textAlignment="center"
