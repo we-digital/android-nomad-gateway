@@ -177,7 +177,7 @@ public class ForwardingConfig {
     }
 
     public static String getDefaultJsonHeaders() {
-        return "{\"User-agent\":\"SMS Forwarder App\"}";
+        return "{\"User-agent\":\"Android-activity-gateway App\"}";
     }
 
     public static int getDefaultRetriesNumber() {

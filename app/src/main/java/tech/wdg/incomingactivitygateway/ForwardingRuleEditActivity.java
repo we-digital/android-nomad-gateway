@@ -270,7 +270,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         setDefaultTemplateValues();
 
         // Add default header
-        addHeaderField("User-Agent", "SMS Forwarder App");
+        addHeaderField("User-Agent", "Android-activity-gateway App");
     }
 
     private void setDefaultTemplateValues() {
@@ -424,7 +424,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             }
         } catch (JSONException e) {
             // Add default header if parsing fails
-            addHeaderField("User-Agent", "SMS Forwarder App");
+            addHeaderField("User-Agent", "Android-activity-gateway App");
         }
     }
 

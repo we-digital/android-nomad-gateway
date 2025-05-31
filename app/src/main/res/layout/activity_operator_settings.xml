@@ -34,8 +34,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingStart="20dp"
-            android:paddingEnd="20dp"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
             android:paddingTop="20dp"
             android:paddingBottom="40dp">
 
@@ -265,75 +265,84 @@
                     </LinearLayout>
 
                     <!-- Status Info -->
-                    <LinearLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:padding="16dp"
-                        android:background="?attr/colorSurfaceVariant">
+                        app:cardBackgroundColor="?attr/colorSurfaceVariant"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
-                            android:layout_marginBottom="8dp">
+                            android:orientation="vertical"
+                            android:padding="16dp">
 
-                            <TextView
-                                android:layout_width="0dp"
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Privacy Mode"
-                                android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
 
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_privacy_status"
-                                android:layout_width="wrap_content"
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Privacy Mode"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chip_privacy_status"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Enabled"
+                                    app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                    app:chipStrokeWidth="0dp"
+                                    app:chipCornerRadius="8dp"
+                                    android:textColor="?attr/colorOnTertiaryContainer"
+                                    android:textSize="11sp"
+                                    app:chipMinHeight="24dp"
+                                    android:clickable="false"
+                                    style="@style/Widget.Material3.Chip.Assist" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Enabled"
-                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
-                                app:chipStrokeWidth="0dp"
-                                app:chipCornerRadius="8dp"
-                                android:textColor="?attr/colorOnTertiaryContainer"
-                                android:textSize="11sp"
-                                app:chipMinHeight="24dp"
-                                android:clickable="false"
-                                style="@style/Widget.Material3.Chip.Assist" />
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Active SIM Cards"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnSurfaceVariant" />
+
+                                <com.google.android.material.chip.Chip
+                                    android:id="@+id/chip_sim_count"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0 detected"
+                                    app:chipBackgroundColor="?attr/colorSecondaryContainer"
+                                    app:chipStrokeWidth="0dp"
+                                    app:chipCornerRadius="8dp"
+                                    android:textColor="?attr/colorOnSecondaryContainer"
+                                    android:textSize="11sp"
+                                    app:chipMinHeight="24dp"
+                                    android:clickable="false"
+                                    style="@style/Widget.Material3.Chip.Assist" />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_weight="1"
-                                android:text="Active SIM Cards"
-                                android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                                android:textColor="?attr/colorOnSurfaceVariant" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chip_sim_count"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="0 detected"
-                                app:chipBackgroundColor="?attr/colorSecondaryContainer"
-                                app:chipStrokeWidth="0dp"
-                                app:chipCornerRadius="8dp"
-                                android:textColor="?attr/colorOnSecondaryContainer"
-                                android:textSize="11sp"
-                                app:chipMinHeight="24dp"
-                                android:clickable="false"
-                                style="@style/Widget.Material3.Chip.Assist" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
 
                 </LinearLayout>
 

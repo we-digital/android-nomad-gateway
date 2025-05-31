@@ -7,7 +7,7 @@
     <dimen name="spacing_extra_large">32dp</dimen>
     
     <!-- Screen margins -->
-    <dimen name="screen_margin_horizontal">16dp</dimen>
+    <dimen name="screen_margin_horizontal">24dp</dimen>
     <dimen name="screen_margin_vertical">16dp</dimen>
     
     <!-- Card dimensions -->

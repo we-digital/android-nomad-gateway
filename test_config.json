@@ -56,7 +56,7 @@
             },
             "headers": {
                 "Content-Type": "application/json",
-                "User-Agent": "SMS Forwarder App"
+                "User-Agent": "Android-activity-gateway App"
             }
         },
         {
@@ -73,7 +73,7 @@
             },
             "headers": {
                 "Content-Type": "application/json",
-                "User-Agent": "SMS Forwarder App"
+                "User-Agent": "Android-activity-gateway App"
             }
         },
         {
@@ -91,7 +91,7 @@
             },
             "headers": {
                 "Content-Type": "application/json",
-                "User-Agent": "SMS Forwarder App"
+                "User-Agent": "Android-activity-gateway App"
             }
         }
     ]

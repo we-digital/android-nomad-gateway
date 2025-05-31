@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:paddingHorizontal="20dp">
+            android:paddingHorizontal="24dp">
 
             <!-- Modern Header Card with Gradient-like Effect -->
             <com.google.android.material.card.MaterialCardView
