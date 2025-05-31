@@ -51,11 +51,11 @@ show_usage() {
 build_release() {
     print_info "Building release APK..."
     
-    # Clean and build release with suppressed warnings for cleaner output
-    ./gradlew clean assembleRelease --warning-mode=summary
+    # Clean and build debug APK (signed and installable on physical devices)
+    ./gradlew clean assembleDebug --warning-mode=summary
     
     # Check if APK was created
-    local apk_path="app/build/outputs/apk/release/app-release-unsigned.apk"
+    local apk_path="app/build/outputs/apk/debug/app-debug.apk"
     if [ -f "$apk_path" ]; then
         print_success "Release APK built successfully: $apk_path"
         
@@ -68,6 +68,7 @@ build_release() {
         local version=$(grep "versionName" app/build.gradle | sed 's/.*versionName = "\([^"]*\)".*/\1/')
         cp "$apk_path" "releases/android-nomad-gateway-v$version.apk"
         print_success "APK copied to releases/android-nomad-gateway-v$version.apk"
+        print_info "Note: Using debug-signed APK for physical device compatibility"
     else
         print_error "Failed to build release APK!"
         exit 1
