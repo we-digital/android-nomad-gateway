@@ -27,12 +27,15 @@ public class ForwardingConfig {
     private static final String KEY_CHUNKED_MODE = "chunked_mode";
     private static final String KEY_IS_SMS_ENABLED = "is_sms_enabled";
 
+    public long id;
+    public boolean isOn = true;
+
     private String key;
-    private String sender;
-    private String url;
+    public String sender;
+    public String url;
     private int simSlot = 0; // 0 means any
     private String template;
-    private String headers;
+    public String headers;
     private int retriesNumber;
     private boolean ignoreSsl = false;
     private boolean chunkedMode = true;
@@ -40,6 +43,7 @@ public class ForwardingConfig {
 
     public ForwardingConfig(Context context) {
         this.context = context;
+        this.id = System.currentTimeMillis() + new Random().nextInt(1000);
     }
 
     public void setKey(String key) {
@@ -151,6 +155,7 @@ public class ForwardingConfig {
             json.put(KEY_IGNORE_SSL, this.ignoreSsl);
             json.put(KEY_CHUNKED_MODE, this.chunkedMode);
             json.put(KEY_IS_SMS_ENABLED, this.isSmsEnabled);
+            json.put("isOn", this.isOn);
 
             SharedPreferences.Editor editor = getEditor(context);
             editor.putString(this.getKey(), json.toString());
@@ -195,6 +200,10 @@ public class ForwardingConfig {
                         config.setIsSmsEnabled(json.getBoolean(KEY_IS_SMS_ENABLED));
                     }
 
+                    if (json.has("isOn")) {
+                        config.isOn = json.getBoolean("isOn");
+                    }
+
                     if (json.has(KEY_SIM_SLOT)) {
                         config.setSimSlot(json.getInt(KEY_SIM_SLOT));
                     }
@@ -214,6 +223,8 @@ public class ForwardingConfig {
                         config.setChunkedMode(json.getBoolean(KEY_CHUNKED_MODE));
                     } catch (JSONException ignored) {
                     }
+
+                    config.id = config.getKey().hashCode();
                 } catch (JSONException e) {
                     Log.e("ForwardingConfig", e.getMessage());
                 }
@@ -221,6 +232,7 @@ public class ForwardingConfig {
                 config.setUrl(value);
                 config.setTemplate(ForwardingConfig.getDefaultJsonTemplate());
                 config.setHeaders(ForwardingConfig.getDefaultJsonHeaders());
+                config.id = config.getKey() != null ? config.getKey().hashCode() : config.sender.hashCode();
             }
 
             configs.add(config);
@@ -248,8 +260,7 @@ public class ForwardingConfig {
     private static SharedPreferences getPreference(Context context) {
         return context.getSharedPreferences(
                 context.getString(R.string.key_phones_preference),
-                Context.MODE_PRIVATE
-        );
+                Context.MODE_PRIVATE);
     }
 
     private static SharedPreferences.Editor getEditor(Context context) {
@@ -261,5 +272,21 @@ public class ForwardingConfig {
         String stamp = Long.toString(System.currentTimeMillis());
         int randomNum = new Random().nextInt((999990 - 100000) + 1) + 100000;
         return stamp + '_' + randomNum;
+    }
+
+    public String getJsonTemplate() {
+        return this.template;
+    }
+
+    public void setJsonTemplate(String template) {
+        this.template = template;
+    }
+
+    public void delete(Context context) {
+        remove();
+    }
+
+    public void update(Context context) {
+        save();
     }
 }

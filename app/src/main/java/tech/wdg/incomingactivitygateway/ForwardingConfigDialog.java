@@ -12,16 +12,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.google.android.material.materialswitch.MaterialSwitch;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class ForwardingConfigDialog {
@@ -30,10 +32,10 @@ public class ForwardingConfigDialog {
 
     final private Context context;
     final private LayoutInflater layoutInflater;
-    final private ListAdapter listAdapter;
+    final private ForwardingRulesAdapter listAdapter;
     private BroadcastReceiver testResultReceiver;
 
-    public ForwardingConfigDialog(Context context, LayoutInflater layoutInflater, ListAdapter listAdapter) {
+    public ForwardingConfigDialog(Context context, LayoutInflater layoutInflater, ForwardingRulesAdapter listAdapter) {
         this.context = context;
         this.layoutInflater = layoutInflater;
         this.listAdapter = listAdapter;
@@ -46,7 +48,7 @@ public class ForwardingConfigDialog {
                 Toast.makeText(context.getApplicationContext(), result, Toast.LENGTH_LONG).show();
             }
         };
-        
+
         // Register receiver with appropriate flags for Android 14+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(testResultReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
@@ -79,8 +81,8 @@ public class ForwardingConfigDialog {
         final EditText retriesNumInput = view.findViewById(R.id.input_number_retries);
         retriesNumInput.setText(String.valueOf(ForwardingConfig.getDefaultRetriesNumber()));
 
-        final CheckBox chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
-        chunkedModeCheckbox.setChecked(true);
+        final MaterialSwitch chunkedModeSwitch = view.findViewById(R.id.input_chunked_mode);
+        chunkedModeSwitch.setChecked(true);
 
         prepareSimSelector(context, view, 0);
 
@@ -101,7 +103,8 @@ public class ForwardingConfigDialog {
                     }
                     config.save();
 
-                    listAdapter.add(config);
+                    ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
+                    listAdapter.updateRules(configs);
                     dialog.dismiss();
                 });
 
@@ -133,11 +136,11 @@ public class ForwardingConfigDialog {
         final EditText retriesNumInput = view.findViewById(R.id.input_number_retries);
         retriesNumInput.setText(String.valueOf(config.getRetriesNumber()));
 
-        final CheckBox ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
-        ignoreSslCheckbox.setChecked(config.getIgnoreSsl());
+        final MaterialSwitch ignoreSslSwitch = view.findViewById(R.id.input_ignore_ssl);
+        ignoreSslSwitch.setChecked(config.getIgnoreSsl());
 
-        final CheckBox chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
-        chunkedModeCheckbox.setChecked(config.getChunkedMode());
+        final MaterialSwitch chunkedModeSwitch = view.findViewById(R.id.input_chunked_mode);
+        chunkedModeSwitch.setChecked(config.getChunkedMode());
 
         builder.setView(view);
         builder.setPositiveButton(R.string.btn_save, null);
@@ -155,7 +158,8 @@ public class ForwardingConfigDialog {
                         return;
                     }
                     configUpdated.save();
-                    listAdapter.notifyDataSetChanged();
+                    ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
+                    listAdapter.updateRules(configs);
                     dialog.dismiss();
                 });
 
@@ -187,8 +191,18 @@ public class ForwardingConfigDialog {
             return null;
         }
 
-        Spinner simSlotSelector = (Spinner) view.findViewById(R.id.input_sim_slot);
-        int simSlot = (int) simSlotSelector.getSelectedItemId();
+        android.widget.AutoCompleteTextView simSlotSelector = view.findViewById(R.id.input_sim_slot);
+        int simSlot = 0;
+        if (simSlotSelector != null && simSlotSelector.getText() != null) {
+            String selectedText = simSlotSelector.getText().toString();
+            if (selectedText.startsWith("sim")) {
+                try {
+                    simSlot = Integer.parseInt(selectedText.substring(3));
+                } catch (NumberFormatException e) {
+                    simSlot = 0;
+                }
+            }
+        }
         config.setSimSlot(simSlot);
 
         final EditText templateInput = view.findViewById(R.id.input_json_template);
@@ -216,11 +230,11 @@ public class ForwardingConfigDialog {
             return null;
         }
 
-        final CheckBox ignoreSslCheckbox = view.findViewById(R.id.input_ignore_ssl);
-        boolean ignoreSsl = ignoreSslCheckbox.isChecked();
+        final MaterialSwitch ignoreSslSwitch = view.findViewById(R.id.input_ignore_ssl);
+        boolean ignoreSsl = ignoreSslSwitch.isChecked();
 
-        final CheckBox chunkedModeCheckbox = view.findViewById(R.id.input_chunked_mode);
-        boolean chunkedMode = chunkedModeCheckbox.isChecked();
+        final MaterialSwitch chunkedModeSwitch = view.findViewById(R.id.input_chunked_mode);
+        boolean chunkedMode = chunkedModeSwitch.isChecked();
 
         config.setSender(sender);
         config.setUrl(url);
@@ -235,14 +249,14 @@ public class ForwardingConfigDialog {
 
     private void prepareSimSelector(Context context, View view, int selected) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
-            SubscriptionManager subscriptionManager =
-                    (SubscriptionManager) context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
+            SubscriptionManager subscriptionManager = (SubscriptionManager) context
+                    .getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE);
             int simSlots = subscriptionManager.getActiveSubscriptionInfoCountMax();
             if (simSlots > 1) {
                 View label = view.findViewById(R.id.input_sim_slot_label);
                 label.setVisibility(View.VISIBLE);
 
-                Spinner simSlotSelector = (Spinner) view.findViewById(R.id.input_sim_slot);
+                android.widget.AutoCompleteTextView simSlotSelector = view.findViewById(R.id.input_sim_slot);
                 simSlotSelector.setVisibility(View.VISIBLE);
 
                 String[] items = new String[simSlots + 1];
@@ -251,14 +265,14 @@ public class ForwardingConfigDialog {
                     items[i] = "sim" + i;
                 }
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(context,
-                        android.R.layout.simple_spinner_item, items);
+                        android.R.layout.simple_dropdown_item_1line, items);
                 simSlotSelector.setAdapter(adapter);
 
                 if (selected > simSlots || selected < 0) {
                     selected = 0;
                 }
 
-                simSlotSelector.setSelection(selected);
+                simSlotSelector.setText(items[selected], false);
             }
         }
     }

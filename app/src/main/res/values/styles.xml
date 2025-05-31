@@ -37,7 +37,6 @@
         <!-- Other colors -->
         <item name="colorOutline">@color/md_theme_light_outline</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">true</item>
         
         <!-- Typography -->
         <item name="textAppearanceHeadlineLarge">@style/TextAppearance.App.HeadlineLarge</item>
@@ -99,7 +98,6 @@
         
         <item name="colorOutline">@color/md_theme_dark_outline</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:windowLightStatusBar">false</item>
     </style>
     
     <!-- Typography styles -->
@@ -120,27 +118,27 @@
     
     <style name="TextAppearance.App.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
         <item name="android:textSize">@dimen/text_size_subtitle</item>
-        <item name="android:letterSpacing">0.15</item>
+        <item name="android:letterSpacing">0.0125</item>
     </style>
     
     <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:textSize">@dimen/text_size_subtitle</item>
-        <item name="android:letterSpacing">0.5</item>
+        <item name="android:letterSpacing">0.015</item>
     </style>
     
     <style name="TextAppearance.App.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textSize">@dimen/text_size_body</item>
-        <item name="android:letterSpacing">0.25</item>
+        <item name="android:letterSpacing">0.01</item>
     </style>
     
     <style name="TextAppearance.App.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">@dimen/text_size_body</item>
-        <item name="android:letterSpacing">0.1</item>
+        <item name="android:letterSpacing">0.01</item>
     </style>
     
     <style name="TextAppearance.App.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
         <item name="android:textSize">@dimen/text_size_caption</item>
-        <item name="android:letterSpacing">0.5</item>
+        <item name="android:letterSpacing">0.015</item>
     </style>
     
     <!-- Shape styles -->

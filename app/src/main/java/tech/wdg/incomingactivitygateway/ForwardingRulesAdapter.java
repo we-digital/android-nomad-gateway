@@ -63,7 +63,7 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
         holder.textUrl.setText(config.url);
 
         // Set template
-        holder.textTemplate.setText(config.jsonTemplate);
+        holder.textTemplate.setText(config.getJsonTemplate());
 
         // Set headers
         holder.textHeaders.setText(config.headers);
@@ -154,7 +154,7 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
                 return oldConfig.sender.equals(newConfig.sender) &&
                         oldConfig.url.equals(newConfig.url) &&
                         oldConfig.isOn == newConfig.isOn &&
-                        oldConfig.jsonTemplate.equals(newConfig.jsonTemplate) &&
+                        oldConfig.getJsonTemplate().equals(newConfig.getJsonTemplate()) &&
                         oldConfig.headers.equals(newConfig.headers);
             }
         });

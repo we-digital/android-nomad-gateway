@@ -149,11 +149,11 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         builder.setNegativeButton(R.string.btn_close, null);
         builder.setNeutralButton(R.string.btn_clear, null);
 
-        final MaterialAlertDialogBuilder dialog = builder.show();
+        final androidx.appcompat.app.AlertDialog dialog = builder.show();
         Objects.requireNonNull(dialog.getWindow())
                 .setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
-        dialog.getButton(MaterialAlertDialogBuilder.BUTTON_NEUTRAL)
+        dialog.getButton(androidx.appcompat.app.AlertDialog.BUTTON_NEUTRAL)
                 .setOnClickListener(view1 -> {
                     String[] command = new String[] { "logcat", "-c" };
                     try {
