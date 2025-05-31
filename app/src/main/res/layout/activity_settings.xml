@@ -365,17 +365,19 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Permissions"
+                            android:text="Permissions Status"
                             android:textAppearance="@style/TextAppearance.App.LabelLarge"
                             android:textColor="?attr/colorOnSurface"
-                            android:layout_marginBottom="8dp" />
+                            android:layout_marginBottom="12dp" />
 
+                        <!-- SMS Permission -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
                             android:padding="12dp"
+                            android:layout_marginBottom="4dp"
                             android:background="?attr/colorSurfaceVariant">
 
                             <TextView
@@ -388,6 +390,209 @@
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chip_sms_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Phone State Permission -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Phone State"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_phone_state_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Call Log Permission -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Call Log"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_call_log_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Contacts Permission -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Contacts"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_contacts_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Phone Numbers Permission -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Phone Numbers"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_phone_numbers_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Notifications Permission (Android 13+) -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:layout_marginBottom="4dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Notifications"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_notifications_permission"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Granted"
+                                app:chipBackgroundColor="?attr/colorTertiaryContainer"
+                                app:chipStrokeWidth="0dp"
+                                app:chipCornerRadius="8dp"
+                                android:textColor="?attr/colorOnTertiaryContainer"
+                                android:textSize="11sp"
+                                app:chipMinHeight="24dp"
+                                android:clickable="false"
+                                style="@style/Widget.Material3.Chip.Assist" />
+
+                        </LinearLayout>
+
+                        <!-- Notification Listener Service -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:padding="12dp"
+                            android:background="?attr/colorSurfaceVariant">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="Notification Access"
+                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                android:textColor="?attr/colorOnSurfaceVariant" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_notification_listener_permission"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Granted"

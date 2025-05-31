@@ -2,13 +2,17 @@ package tech.wdg.incomingactivitygateway;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.NotificationManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
@@ -40,7 +44,16 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView serviceStatusText;
     private TextView aboutText;
     private Chip chipServiceStatus;
+
+    // Permission chips
     private Chip chipSmsPermission;
+    private Chip chipPhoneStatePermission;
+    private Chip chipCallLogPermission;
+    private Chip chipContactsPermission;
+    private Chip chipPhoneNumbersPermission;
+    private Chip chipNotificationsPermission;
+    private Chip chipNotificationListenerPermission;
+
     private MaterialButton btnRefreshLogs;
     private MaterialButton btnClearLogs;
     private MaterialButton btnCopyLogs;
@@ -64,7 +77,7 @@ public class SettingsActivity extends AppCompatActivity {
         loadSystemLogs();
         updateAppInfo();
         updateServiceStatus();
-        updatePermissionStatus();
+        updateAllPermissionStatus();
     }
 
     private void setupToolbar() {
@@ -82,7 +95,16 @@ public class SettingsActivity extends AppCompatActivity {
         serviceStatusText = findViewById(R.id.service_status_text);
         aboutText = findViewById(R.id.about_text);
         chipServiceStatus = findViewById(R.id.chip_service_status);
+
+        // Initialize permission chips
         chipSmsPermission = findViewById(R.id.chip_sms_permission);
+        chipPhoneStatePermission = findViewById(R.id.chip_phone_state_permission);
+        chipCallLogPermission = findViewById(R.id.chip_call_log_permission);
+        chipContactsPermission = findViewById(R.id.chip_contacts_permission);
+        chipPhoneNumbersPermission = findViewById(R.id.chip_phone_numbers_permission);
+        chipNotificationsPermission = findViewById(R.id.chip_notifications_permission);
+        chipNotificationListenerPermission = findViewById(R.id.chip_notification_listener_permission);
+
         btnRefreshLogs = findViewById(R.id.btn_refresh_logs);
         btnClearLogs = findViewById(R.id.btn_clear_logs);
         btnCopyLogs = findViewById(R.id.btn_copy_logs);
@@ -94,6 +116,15 @@ public class SettingsActivity extends AppCompatActivity {
         btnClearLogs.setOnClickListener(v -> clearSystemLogs());
         btnCopyLogs.setOnClickListener(v -> copyLogsToClipboard());
         btnOperatorSettings.setOnClickListener(v -> openOperatorSettings());
+
+        // Add click listeners for permission chips to open settings
+        chipSmsPermission.setOnClickListener(v -> openAppSettings());
+        chipPhoneStatePermission.setOnClickListener(v -> openAppSettings());
+        chipCallLogPermission.setOnClickListener(v -> openAppSettings());
+        chipContactsPermission.setOnClickListener(v -> openAppSettings());
+        chipPhoneNumbersPermission.setOnClickListener(v -> openAppSettings());
+        chipNotificationsPermission.setOnClickListener(v -> openAppSettings());
+        chipNotificationListenerPermission.setOnClickListener(v -> openNotificationListenerSettings());
     }
 
     private void setupClickableText() {
@@ -123,6 +154,26 @@ public class SettingsActivity extends AppCompatActivity {
             startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(this, "Unable to open link", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openAppSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            Uri uri = Uri.fromParts("package", getPackageName(), null);
+            intent.setData(uri);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open app settings", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void openNotificationListenerSettings() {
+        try {
+            Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to open notification settings", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -213,17 +264,62 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private void updatePermissionStatus() {
-        boolean hasSmsPermission = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED;
+    private void updateAllPermissionStatus() {
+        // SMS Permission
+        updatePermissionChip(chipSmsPermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED);
 
-        if (hasSmsPermission) {
-            chipSmsPermission.setText("Granted");
-            chipSmsPermission.setChipBackgroundColorResource(R.color.md_theme_light_tertiaryContainer);
+        // Phone State Permission
+        updatePermissionChip(chipPhoneStatePermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED);
+
+        // Call Log Permission
+        updatePermissionChip(chipCallLogPermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.READ_CALL_LOG) == PackageManager.PERMISSION_GRANTED);
+
+        // Contacts Permission
+        updatePermissionChip(chipContactsPermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED);
+
+        // Phone Numbers Permission
+        updatePermissionChip(chipPhoneNumbersPermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.READ_PHONE_NUMBERS) == PackageManager.PERMISSION_GRANTED);
+
+        // Notifications Permission (Android 13+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            updatePermissionChip(chipNotificationsPermission,
+                    ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED);
+            chipNotificationsPermission.setVisibility(View.VISIBLE);
         } else {
-            chipSmsPermission.setText("Denied");
-            chipSmsPermission.setChipBackgroundColorResource(R.color.md_theme_light_errorContainer);
+            chipNotificationsPermission.setVisibility(View.GONE);
         }
+
+        // Notification Listener Service
+        updatePermissionChip(chipNotificationListenerPermission, isNotificationListenerEnabled());
+    }
+
+    private void updatePermissionChip(Chip chip, boolean isGranted) {
+        if (isGranted) {
+            chip.setText("Granted");
+            chip.setChipBackgroundColorResource(R.color.md_theme_light_tertiaryContainer);
+            chip.setTextColor(ContextCompat.getColor(this, R.color.md_theme_light_onTertiaryContainer));
+        } else {
+            chip.setText("Denied");
+            chip.setChipBackgroundColorResource(R.color.md_theme_light_errorContainer);
+            chip.setTextColor(ContextCompat.getColor(this, R.color.md_theme_light_onErrorContainer));
+        }
+    }
+
+    private boolean isNotificationListenerEnabled() {
+        ComponentName cn = new ComponentName(this, NotificationListenerService.class);
+        String flat = Settings.Secure.getString(getContentResolver(), "enabled_notification_listeners");
+        return flat != null && flat.contains(cn.flattenToString());
     }
 
     private boolean isServiceRunning() {
@@ -257,7 +353,7 @@ public class SettingsActivity extends AppCompatActivity {
         super.onResume();
         // Refresh status when returning to the activity
         updateServiceStatus();
-        updatePermissionStatus();
+        updateAllPermissionStatus();
     }
 
     @Override
@@ -271,6 +367,12 @@ public class SettingsActivity extends AppCompatActivity {
         aboutText = null;
         chipServiceStatus = null;
         chipSmsPermission = null;
+        chipPhoneStatePermission = null;
+        chipCallLogPermission = null;
+        chipContactsPermission = null;
+        chipPhoneNumbersPermission = null;
+        chipNotificationsPermission = null;
+        chipNotificationListenerPermission = null;
         btnRefreshLogs = null;
         btnClearLogs = null;
         btnCopyLogs = null;
