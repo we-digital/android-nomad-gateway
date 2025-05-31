@@ -19,7 +19,8 @@ public class ForwardingConfig {
     // Activity types
     public enum ActivityType {
         SMS("sms"),
-        PUSH("push");
+        PUSH("push"),
+        CALL("call");
 
         private final String value;
 
@@ -329,6 +330,20 @@ public class ForwardingConfig {
         template = template.replace("%sentStamp%", String.valueOf(timeStamp));
         template = template.replace("%receivedStamp%", String.valueOf(System.currentTimeMillis()));
         template = template.replace("%sim%", "notification"); // For notifications, sim is always "notification"
+
+        return template;
+    }
+
+    public String prepareCallMessage(String phoneNumber, String contactName, long timeStamp) {
+        String template = this.getJsonTemplate();
+
+        // Replace call-specific template variables
+        template = template.replace("%from%", phoneNumber);
+        template = template.replace("%contact%", contactName != null ? contactName : "Unknown");
+        template = template.replace("%timestamp%", String.valueOf(timeStamp));
+        template = template.replace("%duration%", "0"); // Duration is 0 for incoming calls
+        template = template.replace("%sentStamp%", String.valueOf(timeStamp));
+        template = template.replace("%receivedStamp%", String.valueOf(System.currentTimeMillis()));
 
         return template;
     }

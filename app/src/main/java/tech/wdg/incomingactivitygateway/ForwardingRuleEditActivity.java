@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -57,6 +58,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private ChipGroup activityTypeChipGroup;
     private Chip chipTypeSms;
     private Chip chipTypePush;
+    private Chip chipTypeCall;
 
     // App selection (for push notifications)
     private AutoCompleteTextView appSelectorDropdown;
@@ -68,6 +70,11 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private LinearLayout sourceFilteringContainer;
     private TextInputLayout senderInputLayout;
     private LinearLayout smsPhoneContainer;
+
+    // Call phone numbers filtering
+    private LinearLayout callPhoneNumbersContainer;
+    private LinearLayout phoneNumbersListContainer;
+    private List<PhoneNumberFieldPair> phoneNumberFields;
 
     // Template fields - both key and value
     private TextInputEditText templateFromKeyInput;
@@ -92,6 +99,10 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
     // Template variables info
     private TextView templateVariablesInfo;
+    private LinearLayout templateVariablesHeader;
+    private LinearLayout templateVariablesContent;
+    private ImageView templateVariablesExpandIcon;
+    private boolean isTemplateVariablesExpanded = false;
 
     // Inner class for app information
     private static class AppInfo {
@@ -150,6 +161,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         activityTypeChipGroup = findViewById(R.id.activity_type_chip_group);
         chipTypeSms = findViewById(R.id.chip_type_sms);
         chipTypePush = findViewById(R.id.chip_type_push);
+        chipTypeCall = findViewById(R.id.chip_type_call);
 
         // App selection (for push notifications)
         appSelectorDropdown = findViewById(R.id.app_selector_dropdown);
@@ -160,6 +172,11 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         sourceFilteringContainer = findViewById(R.id.source_filtering_container);
         senderInputLayout = findViewById(R.id.input_sender_layout);
         smsPhoneContainer = findViewById(R.id.sms_phone_container);
+
+        // Call phone numbers filtering
+        callPhoneNumbersContainer = findViewById(R.id.call_phone_numbers_container);
+        phoneNumbersListContainer = findViewById(R.id.phone_numbers_list_container);
+        phoneNumberFields = new ArrayList<>();
 
         // Template fields - both key and value
         templateFromKeyInput = findViewById(R.id.input_template_from_key);
@@ -187,8 +204,18 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         MaterialButton addTemplateFieldButton = findViewById(R.id.btn_add_template_field);
         addTemplateFieldButton.setOnClickListener(v -> addCustomTemplateField("", ""));
 
+        // Add phone number button
+        MaterialButton addPhoneNumberButton = findViewById(R.id.btn_add_phone_number);
+        addPhoneNumberButton.setOnClickListener(v -> addPhoneNumberField(""));
+
         // Template variables info
         templateVariablesInfo = findViewById(R.id.template_variables_info);
+        templateVariablesHeader = findViewById(R.id.template_variables_header);
+        templateVariablesContent = findViewById(R.id.template_variables_content);
+        templateVariablesExpandIcon = findViewById(R.id.template_variables_expand_icon);
+
+        // Setup template variables expand/collapse
+        setupTemplateVariablesExpandable();
     }
 
     private void loadConfigData() {
@@ -221,6 +248,10 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         retriesInput.setText(String.valueOf(ForwardingConfig.getDefaultRetriesNumber()));
         chunkedModeSwitch.setChecked(true);
 
+        // Enable "All sources" by default for new rules
+        allSourcesSwitch.setChecked(true);
+        sourceFilteringContainer.setVisibility(View.GONE);
+
         // Set default template values based on activity type
         setDefaultTemplateValues();
 
@@ -230,6 +261,7 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
     private void setDefaultTemplateValues() {
         boolean isPush = chipTypePush.isChecked();
+        boolean isCall = chipTypeCall.isChecked();
 
         if (isPush) {
             // Default template values for push notifications
@@ -241,6 +273,16 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             templateTimestampValueInput.setText("%sentStamp%");
             templateSimKeyInput.setText("title");
             templateSimValueInput.setText("%title%");
+        } else if (isCall) {
+            // Default template values for calls
+            templateFromKeyInput.setText("from");
+            templateFromValueInput.setText("%from%");
+            templateTextKeyInput.setText("contact");
+            templateTextValueInput.setText("%contact%");
+            templateTimestampKeyInput.setText("timestamp");
+            templateTimestampValueInput.setText("%timestamp%");
+            templateSimKeyInput.setText("duration");
+            templateSimValueInput.setText("%duration%");
         } else {
             // Default template values for SMS
             templateFromKeyInput.setText("from");
@@ -290,6 +332,9 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             chipTypePush.setChecked(true);
             appSelectorContainer.setVisibility(View.VISIBLE);
             updateUIForPushNotifications();
+        } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
+            chipTypeCall.setChecked(true);
+            updateUIForCalls();
         } else {
             chipTypeSms.setChecked(true);
             appSelectorContainer.setVisibility(View.GONE);
@@ -301,6 +346,11 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
         // Parse existing headers
         parseExistingHeaders();
+
+        // Parse existing phone numbers for calls
+        if (config.getActivityType() == ForwardingConfig.ActivityType.CALL && !allSourcesSwitch.isChecked()) {
+            parseExistingPhoneNumbers();
+        }
     }
 
     private void parseExistingTemplate() {
@@ -407,6 +457,26 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         customTemplateFieldsContainer.addView(templateView);
     }
 
+    private void addPhoneNumberField(String phoneNumber) {
+        View phoneView = LayoutInflater.from(this).inflate(R.layout.item_phone_field,
+                phoneNumbersListContainer, false);
+
+        TextInputEditText phoneInput = phoneView.findViewById(R.id.input_phone_number);
+        MaterialButton removeButton = phoneView.findViewById(R.id.btn_remove_phone);
+
+        phoneInput.setText(phoneNumber);
+
+        PhoneNumberFieldPair pair = new PhoneNumberFieldPair(phoneView, phoneInput);
+        phoneNumberFields.add(pair);
+
+        removeButton.setOnClickListener(v -> {
+            phoneNumbersListContainer.removeView(phoneView);
+            phoneNumberFields.remove(pair);
+        });
+
+        phoneNumbersListContainer.addView(phoneView);
+    }
+
     private void setupClickListeners() {
         MaterialButton saveButton = findViewById(R.id.btn_save);
         MaterialButton testButton = findViewById(R.id.btn_test);
@@ -427,6 +497,9 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             if (chipTypePush.isChecked()) {
                 // For push notifications, use selected app package
                 config.setSender(selectedAppPackage != null ? selectedAppPackage : "");
+            } else if (chipTypeCall.isChecked()) {
+                // For calls, use comma-separated phone numbers
+                config.setSender(buildPhoneNumbersList());
             } else {
                 // For SMS, use phone number from text field
                 config.setSender(senderInput.getText().toString().trim());
@@ -440,6 +513,8 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Set activity type based on selected chip
         if (chipTypePush.isChecked()) {
             config.setActivityType(ForwardingConfig.ActivityType.PUSH);
+        } else if (chipTypeCall.isChecked()) {
+            config.setActivityType(ForwardingConfig.ActivityType.CALL);
         } else {
             config.setActivityType(ForwardingConfig.ActivityType.SMS);
         }
@@ -469,6 +544,22 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 if (selectedAppPackage == null || selectedAppPackage.isEmpty()) {
                     Toast.makeText(this, "Please select an app for push notifications", Toast.LENGTH_SHORT).show();
                     isValid = false;
+                }
+            } else if (chipTypeCall.isChecked()) {
+                // For calls, validate phone numbers
+                if (phoneNumberFields.isEmpty()) {
+                    Toast.makeText(this, "Please add at least one phone number for call monitoring", Toast.LENGTH_SHORT)
+                            .show();
+                    isValid = false;
+                } else {
+                    // Validate each phone number
+                    for (PhoneNumberFieldPair pair : phoneNumberFields) {
+                        String phoneNumber = pair.phoneInput.getText().toString().trim();
+                        if (!isValidPhoneNumber(phoneNumber)) {
+                            pair.phoneInput.setError("Invalid phone number format");
+                            isValid = false;
+                        }
+                    }
                 }
             } else {
                 // For SMS, validate phone number
@@ -570,17 +661,47 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
         // Create temporary config for testing
         ForwardingConfig tempConfig = new ForwardingConfig(this);
-        tempConfig.setSender(senderInput.getText().toString().trim());
+        if (allSourcesSwitch.isChecked()) {
+            tempConfig.setSender("*");
+        } else {
+            if (chipTypePush.isChecked()) {
+                tempConfig.setSender(selectedAppPackage != null ? selectedAppPackage : "");
+            } else if (chipTypeCall.isChecked()) {
+                tempConfig.setSender(buildPhoneNumbersList());
+            } else {
+                tempConfig.setSender(senderInput.getText().toString().trim());
+            }
+        }
         tempConfig.setUrl(urlInput.getText().toString().trim());
         tempConfig.setTemplate(buildJsonTemplate());
         tempConfig.setHeaders(buildHeaders());
         tempConfig.setIgnoreSsl(ignoreSslSwitch.isChecked());
         tempConfig.setChunkedMode(chunkedModeSwitch.isChecked());
 
+        // Set activity type
+        if (chipTypePush.isChecked()) {
+            tempConfig.setActivityType(ForwardingConfig.ActivityType.PUSH);
+        } else if (chipTypeCall.isChecked()) {
+            tempConfig.setActivityType(ForwardingConfig.ActivityType.CALL);
+        } else {
+            tempConfig.setActivityType(ForwardingConfig.ActivityType.SMS);
+        }
+
         // Test the configuration
         Thread testThread = new Thread(() -> {
-            String payload = tempConfig.prepareMessage(
-                    "123456789", "test message", "sim1", System.currentTimeMillis());
+            String payload;
+            if (chipTypePush.isChecked()) {
+                payload = tempConfig.prepareNotificationMessage(
+                        "com.example.testapp", "Test Title", "Test Content", "Test Message",
+                        System.currentTimeMillis());
+            } else if (chipTypeCall.isChecked()) {
+                payload = tempConfig.prepareCallMessage(
+                        "+1234567890", "Test Contact", System.currentTimeMillis());
+            } else {
+                payload = tempConfig.prepareMessage(
+                        "123456789", "test message", "sim1", System.currentTimeMillis());
+            }
+
             Request request = new Request(tempConfig.getUrl(), payload);
             request.setJsonHeaders(tempConfig.getHeaders());
             request.setIgnoreSsl(tempConfig.getIgnoreSsl());
@@ -629,6 +750,16 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
             this.view = view;
             this.keyInput = keyInput;
             this.valueInput = valueInput;
+        }
+    }
+
+    private static class PhoneNumberFieldPair {
+        final View view;
+        final TextInputEditText phoneInput;
+
+        PhoneNumberFieldPair(View view, TextInputEditText phoneInput) {
+            this.view = view;
+            this.phoneInput = phoneInput;
         }
     }
 
@@ -682,6 +813,9 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 // Show app selector for push notifications
                 appSelectorContainer.setVisibility(View.VISIBLE);
                 updateUIForPushNotifications();
+            } else if (checkedIds.contains(R.id.chip_type_call)) {
+                // Show phone numbers for calls
+                updateUIForCalls();
             } else {
                 // Hide app selector for SMS
                 appSelectorContainer.setVisibility(View.GONE);
@@ -694,13 +828,18 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Show app selector for push notifications (only if not using "All sources")
         if (!allSourcesSwitch.isChecked()) {
             appSelectorContainer.setVisibility(View.VISIBLE);
+        } else {
+            appSelectorContainer.setVisibility(View.GONE);
         }
 
         // Hide SMS phone number field for push notifications
         smsPhoneContainer.setVisibility(View.GONE);
 
+        // Hide call phone numbers container
+        callPhoneNumbersContainer.setVisibility(View.GONE);
+
         // Update template variables info
-        updateTemplateVariablesInfo(true);
+        updateTemplateVariablesInfo(true, false);
 
         // Update template defaults if this is a new rule
         if (isNew) {
@@ -715,10 +854,15 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         // Show SMS phone number field (only if not using "All sources")
         if (!allSourcesSwitch.isChecked()) {
             smsPhoneContainer.setVisibility(View.VISIBLE);
+        } else {
+            smsPhoneContainer.setVisibility(View.GONE);
         }
 
+        // Hide call phone numbers container
+        callPhoneNumbersContainer.setVisibility(View.GONE);
+
         // Update template variables info
-        updateTemplateVariablesInfo(false);
+        updateTemplateVariablesInfo(false, false);
 
         // Update template defaults if this is a new rule
         if (isNew) {
@@ -726,10 +870,37 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         }
     }
 
-    private void updateTemplateVariablesInfo(boolean isPush) {
+    private void updateUIForCalls() {
+        // Hide app selector and SMS phone container for calls
+        appSelectorContainer.setVisibility(View.GONE);
+        smsPhoneContainer.setVisibility(View.GONE);
+
+        // Show call phone numbers container (only if not using "All sources")
+        if (!allSourcesSwitch.isChecked()) {
+            callPhoneNumbersContainer.setVisibility(View.VISIBLE);
+        } else {
+            callPhoneNumbersContainer.setVisibility(View.GONE);
+        }
+
+        // Update template variables info
+        updateTemplateVariablesInfo(false, true);
+
+        // Update template defaults if this is a new rule
+        if (isNew) {
+            setDefaultTemplateValues();
+            // Only add a default phone number field if "All sources" is disabled
+            if (!allSourcesSwitch.isChecked() && phoneNumberFields.isEmpty()) {
+                addPhoneNumberField("");
+            }
+        }
+    }
+
+    private void updateTemplateVariablesInfo(boolean isPush, boolean isCall) {
         if (templateVariablesInfo != null) {
             if (isPush) {
                 templateVariablesInfo.setText("Push Notifications: %package%, %title%, %content%, %text%, %sentStamp%");
+            } else if (isCall) {
+                templateVariablesInfo.setText("Call Monitoring: %from%, %contact%, %timestamp%, %duration%");
             } else {
                 templateVariablesInfo.setText("SMS Messages: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%");
             }
@@ -749,10 +920,65 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
                 if (chipTypePush.isChecked()) {
                     appSelectorContainer.setVisibility(View.VISIBLE);
                     smsPhoneContainer.setVisibility(View.GONE);
+                    callPhoneNumbersContainer.setVisibility(View.GONE);
+                } else if (chipTypeCall.isChecked()) {
+                    appSelectorContainer.setVisibility(View.GONE);
+                    smsPhoneContainer.setVisibility(View.GONE);
+                    callPhoneNumbersContainer.setVisibility(View.VISIBLE);
                 } else {
                     appSelectorContainer.setVisibility(View.GONE);
                     smsPhoneContainer.setVisibility(View.VISIBLE);
+                    callPhoneNumbersContainer.setVisibility(View.GONE);
                 }
+            }
+        });
+    }
+
+    private String buildPhoneNumbersList() {
+        StringBuilder phoneNumbers = new StringBuilder();
+        for (PhoneNumberFieldPair pair : phoneNumberFields) {
+            String phone = pair.phoneInput.getText().toString().trim();
+            if (!TextUtils.isEmpty(phone)) {
+                if (phoneNumbers.length() > 0) {
+                    phoneNumbers.append(",");
+                }
+                phoneNumbers.append(phone);
+            }
+        }
+        return phoneNumbers.toString();
+    }
+
+    private void parseExistingPhoneNumbers() {
+        String sender = config.getSender();
+        if (!TextUtils.isEmpty(sender) && !sender.equals("*")) {
+            String[] phoneNumbers = sender.split(",");
+            for (String phoneNumber : phoneNumbers) {
+                String trimmed = phoneNumber.trim();
+                if (!TextUtils.isEmpty(trimmed)) {
+                    addPhoneNumberField(trimmed);
+                }
+            }
+        }
+    }
+
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        if (TextUtils.isEmpty(phoneNumber)) {
+            return false;
+        }
+        // Basic phone number validation - allows digits, +, -, (, ), and spaces
+        return phoneNumber.matches("^[+]?[0-9\\s\\-\\(\\)]+$") && phoneNumber.replaceAll("[^0-9]", "").length() >= 7;
+    }
+
+    private void setupTemplateVariablesExpandable() {
+        templateVariablesHeader.setOnClickListener(v -> {
+            isTemplateVariablesExpanded = !isTemplateVariablesExpanded;
+
+            if (isTemplateVariablesExpanded) {
+                templateVariablesContent.setVisibility(View.VISIBLE);
+                templateVariablesExpandIcon.setImageResource(R.drawable.ic_expand_less);
+            } else {
+                templateVariablesContent.setVisibility(View.GONE);
+                templateVariablesExpandIcon.setImageResource(R.drawable.ic_expand_more);
             }
         });
     }

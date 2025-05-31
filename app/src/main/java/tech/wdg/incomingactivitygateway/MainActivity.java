@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback;
@@ -44,6 +45,13 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     private Chip chipStatus;
     private Chip chipCount;
     private TextView infoNotice;
+
+    // Filter chips
+    private ChipGroup chipGroupFilter;
+    private Chip chipFilterAll;
+    private Chip chipFilterSms;
+    private Chip chipFilterPush;
+    private Chip chipFilterCalls;
 
     private static final int PERMISSION_CODE = 0;
 
@@ -66,6 +74,13 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         chipStatus = findViewById(R.id.chip_status);
         chipCount = findViewById(R.id.chip_count);
         infoNotice = findViewById(R.id.info_notice);
+
+        // Initialize filter chips
+        chipGroupFilter = findViewById(R.id.chip_group_filter);
+        chipFilterAll = findViewById(R.id.chip_filter_all);
+        chipFilterSms = findViewById(R.id.chip_filter_sms);
+        chipFilterPush = findViewById(R.id.chip_filter_push);
+        chipFilterCalls = findViewById(R.id.chip_filter_calls);
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED) {
@@ -179,6 +194,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
 
         adapter = new ForwardingRulesAdapter(context, configs, this);
         recyclerView.setAdapter(adapter);
+
+        // Set up filter chips
+        setupFilterChips();
 
         // Update UI based on list size
         updateEmptyState(configs.size());
@@ -303,5 +321,28 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     protected void onDestroy() {
         super.onDestroy();
         // No need to cleanup dialog anymore
+    }
+
+    private void setupFilterChips() {
+        chipGroupFilter.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.isEmpty()) {
+                return; // Prevent deselecting all chips
+            }
+
+            int checkedId = checkedIds.get(0);
+
+            if (checkedId == R.id.chip_filter_all) {
+                adapter.clearFilter();
+            } else if (checkedId == R.id.chip_filter_sms) {
+                adapter.setFilter(ForwardingConfig.ActivityType.SMS);
+            } else if (checkedId == R.id.chip_filter_push) {
+                adapter.setFilter(ForwardingConfig.ActivityType.PUSH);
+            } else if (checkedId == R.id.chip_filter_calls) {
+                adapter.setFilter(ForwardingConfig.ActivityType.CALL);
+            }
+
+            // Update empty state based on filtered results
+            updateEmptyState(adapter.getItemCount());
+        });
     }
 }

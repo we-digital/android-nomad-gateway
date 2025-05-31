@@ -1,12 +1,51 @@
-# Incoming SMS to URL forwarder
+# Incoming SMS, Calls & Notifications Gateway
 
-This is a free, open-source Android app that automatically forwards incoming SMS messages to a specified URL as JSON via HTTP POST.
-* Forward SMS from specific numbers or all senders.
-* Retries failed requests with exponential backoff.
-* Includes sender, message, timestamp, SIM slot, and more.
-* Forward messages directly to Telegram bots or channels.
-* Built-in test message sender and error log viewer.
-* No cloud services or user registration required.
+This is a free, open-source Android app that automatically forwards incoming SMS messages, phone calls, and push notifications to specified URLs as JSON via HTTP POST.
+
+## Features
+
+* **SMS Forwarding**: Forward SMS from specific numbers or all senders
+* **Call Monitoring**: Forward incoming call information with caller details and contact names
+* **Push Notification Forwarding**: Forward notifications from specific apps
+* **Flexible Filtering**: Configure rules for specific phone numbers, apps, or monitor all sources
+* **Modern UI**: Material Design 3 interface with structured configuration
+* **Template Customization**: Build custom JSON payloads with template variables
+* **HTTP Headers**: Configure custom headers for webhook requests
+* **Retry Logic**: Failed requests retry with exponential backoff
+* **SSL Options**: Option to ignore SSL certificate errors
+* **Built-in Testing**: Test webhook configurations before saving
+* **No Cloud Dependencies**: All processing happens locally on your device
+
+## Activity Types
+
+### SMS Messages
+Forward incoming text messages with sender information, message content, timestamps, and SIM slot details.
+
+**Available template variables:**
+- `%from%` - Sender phone number
+- `%text%` - Message content
+- `%sentStamp%` - Message sent timestamp
+- `%receivedStamp%` - Message received timestamp
+- `%sim%` - SIM slot identifier
+
+### Phone Calls
+Monitor incoming calls and forward caller information including contact names when available.
+
+**Available template variables:**
+- `%from%` - Caller phone number
+- `%contact%` - Contact name (if available in contacts)
+- `%timestamp%` - Call timestamp
+- `%duration%` - Call duration (0 for incoming calls)
+
+### Push Notifications
+Forward notifications from specific apps with title, content, and app information.
+
+**Available template variables:**
+- `%package%` - App package name
+- `%title%` - Notification title
+- `%content%` - Notification content
+- `%text%` - Combined notification text
+- `%sentStamp%` - Notification timestamp
 
 ## Download apk
 

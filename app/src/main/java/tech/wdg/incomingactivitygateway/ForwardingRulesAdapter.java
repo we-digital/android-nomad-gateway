@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.DiffUtil;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.materialswitch.MaterialSwitch;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +21,10 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
 
     private final Context context;
     private List<ForwardingConfig> rules;
+    private List<ForwardingConfig> filteredRules;
     private final OnRuleActionListener listener;
     private int expandedPosition = -1;
+    private ForwardingConfig.ActivityType currentFilter = null; // null means show all
 
     public interface OnRuleActionListener {
         void onRuleEdit(ForwardingConfig config);
@@ -34,6 +37,7 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
     public ForwardingRulesAdapter(Context context, List<ForwardingConfig> rules, OnRuleActionListener listener) {
         this.context = context;
         this.rules = rules != null ? rules : new ArrayList<>();
+        this.filteredRules = new ArrayList<>(this.rules);
         this.listener = listener;
         setHasStableIds(true);
     }
@@ -48,7 +52,7 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        ForwardingConfig config = rules.get(position);
+        ForwardingConfig config = filteredRules.get(position);
         boolean isExpanded = position == expandedPosition;
 
         // Set sender info
@@ -58,6 +62,9 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
         String initial = config.sender.isEmpty() ? "?"
                 : config.sender.equals("*") ? "*" : config.sender.substring(0, 1).toUpperCase();
         holder.senderInitial.setText(initial);
+
+        // Set activity type chip
+        setActivityTypeChip(holder.chipActivityType, config.getActivityType());
 
         // Set URL
         holder.textUrl.setText(config.url);
@@ -79,20 +86,6 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
 
         // Handle expansion
         holder.detailsSection.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-        holder.expandButton.setText(isExpanded ? "Hide Details" : "Show Details");
-        holder.expandButton.setIconResource(isExpanded ? R.drawable.ic_expand_less : R.drawable.ic_expand_more);
-
-        holder.expandButton.setOnClickListener(v -> {
-            int previousExpanded = expandedPosition;
-            expandedPosition = isExpanded ? -1 : position;
-
-            if (previousExpanded != -1) {
-                notifyItemChanged(previousExpanded);
-            }
-            if (expandedPosition != -1) {
-                notifyItemChanged(expandedPosition);
-            }
-        });
 
         // Handle actions
         holder.editButton.setOnClickListener(v -> {
@@ -114,20 +107,79 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
                     .show();
         });
 
-        // Add ripple effect on card click
+        // Card click triggers expand/collapse
         holder.cardView.setOnClickListener(v -> {
-            holder.expandButton.performClick();
+            int previousExpanded = expandedPosition;
+            expandedPosition = isExpanded ? -1 : position;
+
+            if (previousExpanded != -1) {
+                notifyItemChanged(previousExpanded);
+            }
+            if (expandedPosition != -1) {
+                notifyItemChanged(expandedPosition);
+            }
         });
     }
 
     @Override
     public int getItemCount() {
-        return rules.size();
+        return filteredRules.size();
     }
 
     @Override
     public long getItemId(int position) {
-        return rules.get(position).id;
+        return filteredRules.get(position).id;
+    }
+
+    private void setActivityTypeChip(Chip chip, ForwardingConfig.ActivityType activityType) {
+        switch (activityType) {
+            case SMS:
+                chip.setText("SMS");
+                chip.setChipIcon(context.getDrawable(R.drawable.ic_sms));
+                break;
+            case PUSH:
+                chip.setText("Push");
+                chip.setChipIcon(context.getDrawable(R.drawable.ic_notifications));
+                break;
+            case CALL:
+                chip.setText("Calls");
+                chip.setChipIcon(context.getDrawable(R.drawable.ic_call));
+                break;
+            default:
+                chip.setText("SMS");
+                chip.setChipIcon(context.getDrawable(R.drawable.ic_sms));
+                break;
+        }
+    }
+
+    public void setFilter(ForwardingConfig.ActivityType activityType) {
+        this.currentFilter = activityType;
+        applyFilter();
+    }
+
+    public void clearFilter() {
+        this.currentFilter = null;
+        applyFilter();
+    }
+
+    private void applyFilter() {
+        filteredRules.clear();
+
+        if (currentFilter == null) {
+            // Show all rules
+            filteredRules.addAll(rules);
+        } else {
+            // Filter by activity type
+            for (ForwardingConfig config : rules) {
+                if (config.getActivityType() == currentFilter) {
+                    filteredRules.add(config);
+                }
+            }
+        }
+
+        // Reset expanded position when filtering
+        expandedPosition = -1;
+        notifyDataSetChanged();
     }
 
     public void updateRules(List<ForwardingConfig> newRules) {
@@ -154,13 +206,14 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
                 return oldConfig.sender.equals(newConfig.sender) &&
                         oldConfig.url.equals(newConfig.url) &&
                         oldConfig.isOn == newConfig.isOn &&
+                        oldConfig.getActivityType() == newConfig.getActivityType() &&
                         oldConfig.getJsonTemplate().equals(newConfig.getJsonTemplate()) &&
                         oldConfig.headers.equals(newConfig.headers);
             }
         });
 
         rules = newRules;
-        diffResult.dispatchUpdatesTo(this);
+        applyFilter(); // Reapply current filter with new rules
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -172,9 +225,9 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
         final TextView textHeaders;
         final MaterialSwitch switchEnabled;
         final View detailsSection;
-        final MaterialButton expandButton;
         final MaterialButton editButton;
         final MaterialButton deleteButton;
+        final Chip chipActivityType;
 
         ViewHolder(View itemView) {
             super(itemView);
@@ -186,9 +239,9 @@ public class ForwardingRulesAdapter extends RecyclerView.Adapter<ForwardingRules
             textHeaders = itemView.findViewById(R.id.text_headers);
             switchEnabled = itemView.findViewById(R.id.switch_sms_on_off);
             detailsSection = itemView.findViewById(R.id.details_section);
-            expandButton = itemView.findViewById(R.id.expand_button);
             editButton = itemView.findViewById(R.id.edit_button);
             deleteButton = itemView.findViewById(R.id.delete_button);
+            chipActivityType = itemView.findViewById(R.id.chip_activity_type);
         }
     }
 }

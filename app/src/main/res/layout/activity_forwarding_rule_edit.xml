@@ -117,7 +117,7 @@
                                 android:id="@+id/chip_type_sms"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="SMS Messages"
+                                android:text="SMS"
                                 app:chipIcon="@drawable/ic_sms"
                                 android:checked="true"
                                 style="@style/Widget.Material3.Chip.Filter" />
@@ -126,8 +126,16 @@
                                 android:id="@+id/chip_type_push"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Push Notifications"
+                                android:text="Push"
                                 app:chipIcon="@drawable/ic_notifications"
+                                style="@style/Widget.Material3.Chip.Filter" />
+
+                            <com.google.android.material.chip.Chip
+                                android:id="@+id/chip_type_call"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Calls"
+                                app:chipIcon="@drawable/ic_call"
                                 style="@style/Widget.Material3.Chip.Filter" />
 
                         </com.google.android.material.chip.ChipGroup>
@@ -147,15 +155,8 @@
                             android:layout_height="wrap_content"
                             android:text="Forward from all sources"
                             android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                            android:paddingVertical="12dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Enable to forward from all phone numbers (SMS) or all apps (Push notifications)"
-                            android:textAppearance="@style/TextAppearance.App.BodySmall"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginTop="4dp" />
+                            android:paddingVertical="12dp"
+                            android:checked="true" />
 
                     </LinearLayout>
 
@@ -164,7 +165,8 @@
                         android:id="@+id/source_filtering_container"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:visibility="gone">
 
                         <!-- App Selector for Push Notifications -->
                         <LinearLayout
@@ -233,6 +235,49 @@
                                     android:inputType="phone" />
 
                             </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- Phone Numbers for Call Filtering -->
+                        <LinearLayout
+                            android:id="@+id/call_phone_numbers_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_marginBottom="16dp"
+                            android:visibility="gone">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:gravity="center_vertical"
+                                android:layout_marginBottom="8dp">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Phone Numbers to Monitor"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnSurface" />
+
+                                <com.google.android.material.button.MaterialButton
+                                    android:id="@+id/btn_add_phone_number"
+                                    style="@style/Widget.Material3.Button.TextButton"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Add Number"
+                                    app:icon="@drawable/ic_add"
+                                    android:textColor="?attr/colorPrimary" />
+
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/phone_numbers_list_container"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical" />
 
                         </LinearLayout>
 
@@ -317,34 +362,66 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/spacing_medium"
-                        app:cardBackgroundColor="?attr/colorPrimaryContainer"
+                        app:cardBackgroundColor="?attr/colorSurfaceVariant"
                         app:cardElevation="0dp"
                         app:cardCornerRadius="8dp">
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="@dimen/spacing_small">
+                            android:orientation="vertical">
 
-                            <TextView
+                            <!-- Expandable Header -->
+                            <LinearLayout
+                                android:id="@+id/template_variables_header"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="Available Template Variables:"
-                                android:textAppearance="@style/TextAppearance.App.LabelLarge"
-                                android:textColor="?attr/colorOnPrimaryContainer"
-                                android:textStyle="bold"
-                                android:layout_marginBottom="@dimen/spacing_tiny" />
+                                android:orientation="horizontal"
+                                android:padding="@dimen/spacing_small"
+                                android:gravity="center_vertical"
+                                android:background="?attr/selectableItemBackground"
+                                android:clickable="true"
+                                android:focusable="true">
 
-                            <TextView
-                                android:id="@+id/template_variables_info"
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="Template Variables"
+                                    android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:textStyle="bold" />
+
+                                <ImageView
+                                    android:id="@+id/template_variables_expand_icon"
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:src="@drawable/ic_expand_more"
+                                    android:tint="?attr/colorOnSurfaceVariant" />
+
+                            </LinearLayout>
+
+                            <!-- Expandable Content -->
+                            <LinearLayout
+                                android:id="@+id/template_variables_content"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:text="SMS: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%\nNotifications: %package%, %title%, %content%, %sentStamp%"
-                                android:textAppearance="@style/TextAppearance.App.BodyMedium"
-                                android:textColor="?attr/colorOnPrimaryContainer"
-                                android:typeface="monospace"
-                                android:textSize="12sp" />
+                                android:orientation="vertical"
+                                android:padding="@dimen/spacing_small"
+                                android:paddingTop="0dp"
+                                android:visibility="gone">
+
+                                <TextView
+                                    android:id="@+id/template_variables_info"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:text="SMS: %from%, %text%, %sentStamp%, %receivedStamp%, %sim%\nNotifications: %package%, %title%, %content%, %sentStamp%"
+                                    android:textAppearance="@style/TextAppearance.App.BodyMedium"
+                                    android:textColor="?attr/colorOnSurfaceVariant"
+                                    android:typeface="monospace"
+                                    android:textSize="12sp" />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
