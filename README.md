@@ -57,6 +57,37 @@ Or download it from F-Droid
      alt="Get it on F-Droid"
      height="80">](https://f-droid.org/packages/tech.bogomolov.incomingsmsgateway/)
 
+## Development & Release Management
+
+This project includes automated version management and release scripts for streamlined development:
+
+### Quick Release
+```bash
+# Complete release workflow (recommended)
+./release.sh minor "Add new features and improvements"
+
+# Version bump only
+./version_bump.sh patch "Fix critical bug"
+```
+
+### Available Scripts
+- **`version_bump.sh`** - Automated version bumping with git commits and tags
+- **`release.sh`** - Complete release workflow with APK building and GitHub releases
+- **Semantic versioning** support (major/minor/patch)
+- **Automatic changelog** generation
+- **Build verification** and rollback capabilities
+
+For detailed documentation, see [VERSION_MANAGEMENT.md](VERSION_MANAGEMENT.md).
+
+### Building from Source
+```bash
+# Debug build
+./gradlew assembleDebug
+
+# Release build
+./gradlew assembleRelease
+```
+
 ## How to use
 
 Set up App Permissions for you phone after installation. For example, enable "Autostart" if needed
