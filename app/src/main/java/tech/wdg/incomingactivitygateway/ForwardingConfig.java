@@ -349,9 +349,19 @@ public class ForwardingConfig {
     }
 
     private static SharedPreferences getPreference(Context context) {
-        return context.getSharedPreferences(
-                context.getString(R.string.key_phones_preference),
-                Context.MODE_PRIVATE);
+        if (context == null) {
+            throw new IllegalArgumentException("Context cannot be null");
+        }
+
+        try {
+            return context.getSharedPreferences(
+                    context.getString(R.string.key_phones_preference),
+                    Context.MODE_PRIVATE);
+        } catch (Exception e) {
+            // Fallback to hardcoded preference name if string resource fails
+            Log.w("ForwardingConfig", "Failed to get string resource, using fallback", e);
+            return context.getSharedPreferences("phones", Context.MODE_PRIVATE);
+        }
     }
 
     private static SharedPreferences.Editor getEditor(Context context) {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Include app preferences -->
+    <include domain="sharedpref" path="." />
+    
+    <!-- Exclude sensitive data -->
+    <exclude domain="sharedpref" path="phones" />
+    <exclude domain="database" path="." />
+    <exclude domain="file" path="." />
+    
+    <!-- Include only necessary files -->
+    <include domain="file" path="config/" />
+</full-backup-content> 

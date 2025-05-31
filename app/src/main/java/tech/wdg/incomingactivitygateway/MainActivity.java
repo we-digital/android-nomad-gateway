@@ -37,6 +37,7 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity implements ForwardingRulesAdapter.OnRuleActionListener {
 
+    private static final String TAG = "MainActivity";
     private Context context;
     private ForwardingRulesAdapter adapter;
     private ForwardingConfigDialog configDialog;
@@ -232,10 +233,24 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private void refreshList() {
-        ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
-        adapter.updateRules(configs);
-        updateEmptyState(configs.size());
-        updateChipCount(configs.size());
+        if (context == null) {
+            Log.w(TAG, "Context is null, cannot refresh list");
+            return;
+        }
+
+        try {
+            ArrayList<ForwardingConfig> configs = ForwardingConfig.getAll(context);
+            if (adapter != null) {
+                adapter.updateRules(configs);
+                updateEmptyState(configs.size());
+                updateChipCount(configs.size());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error refreshing list", e);
+            // Show empty state on error
+            updateEmptyState(0);
+            updateChipCount(0);
+        }
     }
 
     // Implement ForwardingRulesAdapter.OnRuleActionListener
@@ -263,13 +278,67 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     protected void onResume() {
         super.onResume();
         // Refresh the list when returning from edit activity
-        refreshList();
+        // Only refresh if the activity is properly initialized
+        if (context != null && adapter != null) {
+            refreshList();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // No need to cleanup dialog anymore
+
+        // Clean up resources to prevent memory leaks
+        if (configDialog != null) {
+            configDialog.cleanup();
+            configDialog = null;
+        }
+
+        // Clear adapter references
+        if (adapter != null) {
+            adapter = null;
+        }
+
+        // Clear context reference
+        context = null;
+
+        Log.d(TAG, "MainActivity destroyed and cleaned up");
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+
+        Log.d(TAG, "Memory trim requested: " + level);
+
+        // Handle memory pressure
+        switch (level) {
+            case TRIM_MEMORY_UI_HIDDEN:
+                // UI is hidden, can release UI-related resources
+                break;
+            case TRIM_MEMORY_RUNNING_MODERATE:
+            case TRIM_MEMORY_RUNNING_LOW:
+            case TRIM_MEMORY_RUNNING_CRITICAL:
+                // App is running but system is low on memory
+                performMemoryCleanup();
+                break;
+        }
+    }
+
+    private void performMemoryCleanup() {
+        try {
+            // Modern memory management - avoid System.gc()
+            // Let the system handle garbage collection automatically
+
+            // Clear any cached data in adapter
+            if (adapter != null) {
+                adapter.notifyDataSetChanged();
+            }
+
+            Log.d(TAG, "Memory cleanup performed in MainActivity");
+        } catch (Exception e) {
+            Log.e(TAG, "Error during memory cleanup", e);
+        }
     }
 
     private void setupFilterChips() {

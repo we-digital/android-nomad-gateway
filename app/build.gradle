@@ -6,24 +6,30 @@ android {
 
     defaultConfig {
         applicationId = "tech.wdg.incomingactivitygateway"
-        minSdkVersion = 21
-        targetSdkVersion = 35
-        versionCode = 12
-        versionName = "2.3.0"
+        minSdk = 26
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = false
+        }
     }
 
     buildTypes {
         debug {
             debuggable true
             minifyEnabled false
-            // Disable certain debugging features that might cause issues
-            buildConfigField "boolean", "DEBUG_LOGGING", "false"
+            buildConfigField "boolean", "DEBUG_LOGGING", "true"
         }
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField "boolean", "DEBUG_LOGGING", "false"
         }
     }
     
@@ -36,16 +42,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    tasks.withType(JavaCompile).configureEach {
-        options.compilerArgs << "-Xlint:deprecation"
-    }
-    
     lint {
         baseline = file("lint-baseline.xml")
         abortOnError = false
         checkReleaseBuilds = true
     }
-
 }
 
 dependencies {
@@ -53,6 +54,7 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
+    // Latest AndroidX libraries
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.2.0'
@@ -67,6 +69,16 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
     // For animations and transitions
     implementation 'androidx.transition:transition:1.5.1'
+    
+    // Core KTX for modern Android development
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.activity:activity:1.9.3'
+    implementation 'androidx.fragment:fragment:1.8.5'
+    
+    // Lifecycle components
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel:2.8.7'
+    implementation 'androidx.lifecycle:lifecycle-livedata:2.8.7'
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.mockito:mockito-core:5.15.2'

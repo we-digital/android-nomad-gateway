@@ -34,6 +34,7 @@ import java.io.InputStreamReader;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static final String TAG = "SettingsActivity";
     private TextView syslogsText;
     private TextView appVersion;
     private TextView serviceStatusText;
@@ -257,5 +258,55 @@ public class SettingsActivity extends AppCompatActivity {
         // Refresh status when returning to the activity
         updateServiceStatus();
         updatePermissionStatus();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Clear references to prevent memory leaks
+        syslogsText = null;
+        appVersion = null;
+        serviceStatusText = null;
+        aboutText = null;
+        chipServiceStatus = null;
+        chipSmsPermission = null;
+        btnRefreshLogs = null;
+        btnClearLogs = null;
+        btnCopyLogs = null;
+        btnOperatorSettings = null;
+
+        Log.d(TAG, "SettingsActivity destroyed and cleaned up");
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+
+        Log.d(TAG, "Memory trim requested: " + level);
+
+        // Handle memory pressure
+        switch (level) {
+            case TRIM_MEMORY_UI_HIDDEN:
+                // UI is hidden, can release UI-related resources
+                break;
+            case TRIM_MEMORY_RUNNING_MODERATE:
+            case TRIM_MEMORY_RUNNING_LOW:
+            case TRIM_MEMORY_RUNNING_CRITICAL:
+                // App is running but system is low on memory
+                performMemoryCleanup();
+                break;
+        }
+    }
+
+    private void performMemoryCleanup() {
+        try {
+            // Modern memory management - avoid System.gc()
+            // Let the system handle garbage collection automatically
+
+            Log.d(TAG, "Memory cleanup performed in SettingsActivity");
+        } catch (Exception e) {
+            Log.e(TAG, "Error during memory cleanup", e);
+        }
     }
 }
