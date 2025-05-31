@@ -1,6 +1,6 @@
 {
     "webhook": {
-        "url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+        "url": "https://example.com/test_webhook",
         "method": "POST",
         "headers": {
             "Content-Type": "application/json",
@@ -46,7 +46,7 @@
             "name": "SMS Test Rule",
             "activity_type": "SMS",
             "all_sources": true,
-            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "webhook_url": "https://example.com/test_webhook",
             "template": {
                 "from": "%from%",
                 "text": "%text%",
@@ -63,7 +63,7 @@
             "name": "Call Test Rule",
             "activity_type": "CALL",
             "all_sources": true,
-            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "webhook_url": "https://example.com/test_webhook",
             "template": {
                 "from": "%from%",
                 "contact": "%contact%",
@@ -80,7 +80,7 @@
             "name": "Push Test Rule",
             "activity_type": "PUSH",
             "all_sources": true,
-            "webhook_url": "https://static-conv-n8n.teknologia.org/webhook/android-activity",
+            "webhook_url": "https://example.com/test_webhook",
             "template": {
                 "app": "%package%",
                 "title": "%title%",

@@ -5,7 +5,7 @@ export ANDROID_HOME=~/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
 
 # Load configuration
-WEBHOOK_URL="https://static-conv-n8n.teknologia.org/webhook/android-activity"
+WEBHOOK_URL="https://example.com/test_webhook"
 TEST_PHONE="+1987654321"
 
 echo "🔄 Testing call forwarding..."

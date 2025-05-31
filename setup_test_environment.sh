@@ -4,7 +4,7 @@
 export ANDROID_HOME=~/Library/Android/sdk
 export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools
 
-WEBHOOK_URL="https://static-conv-n8n.teknologia.org/webhook/android-activity"
+WEBHOOK_URL="https://example.com/test_webhook"
 PACKAGE_NAME="tech.wdg.incomingactivitygateway"
 
 echo "🚀 Setting up Android Nomad Gateway Test Environment"

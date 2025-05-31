@@ -21,7 +21,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 📱 SMS Rule
 - **Activity Type**: SMS
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
+- **Webhook URL**: `https://example.com/test_webhook`
 - **Template**:
 ```json
 {
@@ -36,7 +36,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 📞 Call Rule
 - **Activity Type**: Calls
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
+- **Webhook URL**: `https://example.com/test_webhook`
 - **Template**:
 ```json
 {
@@ -51,7 +51,7 @@ Open the app on the emulator and create three forwarding rules:
 #### 🔔 Push Rule
 - **Activity Type**: Push
 - **All sources**: Enabled
-- **Webhook URL**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
+- **Webhook URL**: `https://example.com/test_webhook`
 - **Template**:
 ```json
 {
@@ -86,7 +86,7 @@ Open the app on the emulator and create three forwarding rules:
 
 ## 🔧 Webhook Configuration
 
-**Endpoint**: `https://static-conv-n8n.teknologia.org/webhook/android-activity`
+**Endpoint**: `YOUR_WEBHOOK_NAME`
 
 **Note**: The webhook needs to be activated in n8n test mode before testing. Click the "Test workflow" button in n8n, then run the tests.
 
@@ -136,7 +136,7 @@ adb shell settings get secure enabled_notification_listeners
 
 ### Manual Webhook Test
 ```bash
-curl -X POST 'https://static-conv-n8n.teknologia.org/webhook/android-activity' \
+curl -X POST 'https://example.com/test_webhook' \
   -H 'Content-Type: application/json' \
   -d '{"test":"manual","timestamp":"'$(date +%s)'"}'
 ```
