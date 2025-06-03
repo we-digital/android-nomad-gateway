@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2025-06-04
+
+### Added
+- Improved background stability operation; Added app webhooks (start, stop, sim status change). Added extended data optional sending with forwarding rules (configurable for each rule); Added WIFI permission;
+
+
 ## [1.2.1] - 2025-05-31
 
 ### Added
