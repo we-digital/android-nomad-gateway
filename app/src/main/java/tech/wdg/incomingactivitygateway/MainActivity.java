@@ -115,6 +115,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
 
         // Check and request all necessary permissions
         checkAndRequestPermissions();
+
+        // Trigger manual start webhook
+        triggerManualStartWebhook();
     }
 
     private void initializeViews() {
@@ -582,9 +585,12 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private void checkBackgroundOperationGuidance() {
-        // Show guidance if battery optimization is enabled
-        if (!BackgroundOperationManager.isBatteryOptimizationDisabled(this)) {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        boolean hasShownGuidance = prefs.getBoolean("has_shown_background_guidance", false);
+
+        if (!hasShownGuidance && !BackgroundOperationManager.isBatteryOptimizationDisabled(this)) {
             showBackgroundOperationGuidance();
+            prefs.edit().putBoolean("has_shown_background_guidance", true).apply();
         }
     }
 
@@ -603,5 +609,17 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
                     BackgroundOperationManager.openAppSettings(this);
                 })
                 .show();
+    }
+
+    private void triggerManualStartWebhook() {
+        // Check if manual start webhook is enabled
+        if (AppWebhooksActivity.isManualStartWebhookEnabled(this)) {
+            String url = AppWebhooksActivity.getManualStartWebhookUrl(this);
+            if (!url.isEmpty()) {
+                WebhookPayload payload = WebhookSender.createAppStartPayload(this, true);
+                WebhookSender.sendWebhook(this, url, payload);
+                Log.d(TAG, "Manual start webhook triggered");
+            }
+        }
     }
 }

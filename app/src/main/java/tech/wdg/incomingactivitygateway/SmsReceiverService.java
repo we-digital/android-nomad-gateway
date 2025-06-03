@@ -56,6 +56,9 @@ public class SmsReceiverService extends Service {
         // Update service state
         updateServiceState(true);
 
+        // Trigger auto-start webhook
+        triggerAutoStartWebhook();
+
         Log.d(TAG, "Service created and started in foreground");
     }
 
@@ -273,5 +276,20 @@ public class SmsReceiverService extends Service {
     public static int getServiceStartCount(android.content.Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         return prefs.getInt(KEY_START_COUNT, 0);
+    }
+
+    /**
+     * Triggers webhook for auto-start event
+     */
+    private void triggerAutoStartWebhook() {
+        // Check if auto-start webhook is enabled
+        if (AppWebhooksActivity.isAutoStartWebhookEnabled(this)) {
+            String url = AppWebhooksActivity.getAutoStartWebhookUrl(this);
+            if (!url.isEmpty()) {
+                WebhookPayload payload = WebhookSender.createAppStartPayload(this, false);
+                WebhookSender.sendWebhook(this, url, payload);
+                Log.d(TAG, "Auto-start webhook triggered");
+            }
+        }
     }
 }

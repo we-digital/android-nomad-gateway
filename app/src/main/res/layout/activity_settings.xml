@@ -693,6 +693,20 @@
                         android:textColor="?attr/colorPrimary"
                         app:strokeColor="?attr/colorPrimary" />
 
+                    <!-- App Webhooks Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_app_webhooks"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="App Webhooks"
+                        android:textAppearance="@style/TextAppearance.App.LabelLarge"
+                        app:icon="@drawable/ic_link"
+                        app:iconGravity="start"
+                        android:textColor="?attr/colorPrimary"
+                        app:strokeColor="?attr/colorPrimary" />
+
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>

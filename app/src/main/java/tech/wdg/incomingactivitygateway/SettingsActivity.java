@@ -59,6 +59,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialButton btnClearLogs;
     private MaterialButton btnCopyLogs;
     private MaterialButton btnOperatorSettings;
+    private MaterialButton btnAppWebhooks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnClearLogs = findViewById(R.id.btn_clear_logs);
         btnCopyLogs = findViewById(R.id.btn_copy_logs);
         btnOperatorSettings = findViewById(R.id.btn_operator_settings);
+        btnAppWebhooks = findViewById(R.id.btn_app_webhooks);
     }
 
     private void setupClickListeners() {
@@ -117,6 +119,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnClearLogs.setOnClickListener(v -> clearSystemLogs());
         btnCopyLogs.setOnClickListener(v -> copyLogsToClipboard());
         btnOperatorSettings.setOnClickListener(v -> openOperatorSettings());
+        btnAppWebhooks.setOnClickListener(v -> openAppWebhooks());
 
         // Add click listeners for permission chips to open settings
         chipSmsPermission.setOnClickListener(v -> openAppSettings());
@@ -361,6 +364,11 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void openAppWebhooks() {
+        Intent intent = new Intent(this, AppWebhooksActivity.class);
+        startActivity(intent);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -399,6 +407,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnClearLogs = null;
         btnCopyLogs = null;
         btnOperatorSettings = null;
+        btnAppWebhooks = null;
 
         Log.d(TAG, "SettingsActivity destroyed and cleaned up");
     }
