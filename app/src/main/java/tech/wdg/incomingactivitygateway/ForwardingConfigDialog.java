@@ -297,14 +297,14 @@ public class ForwardingConfigDialog {
             String simName = OperatorSettingsActivity.getSimName(context, 0); // Use first SIM for testing
 
             if (config.getActivityType() == ForwardingConfig.ActivityType.PUSH) {
-                payload = config.prepareNotificationMessage(
+                payload = config.prepareEnhancedNotificationMessage(
                         "com.example.testapp", "Test Title", "Test Content", "Test Message",
                         System.currentTimeMillis());
             } else if (config.getActivityType() == ForwardingConfig.ActivityType.CALL) {
-                payload = config.prepareCallMessage(
+                payload = config.prepareEnhancedCallMessage(
                         "+1234567890", "Test Contact", simName, System.currentTimeMillis());
             } else {
-                payload = config.prepareMessage(
+                payload = config.prepareEnhancedMessage(
                         "123456789", "test message", simName, System.currentTimeMillis());
             }
 

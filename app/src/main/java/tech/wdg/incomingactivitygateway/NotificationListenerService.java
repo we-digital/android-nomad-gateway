@@ -128,8 +128,8 @@ public class NotificationListenerService extends android.service.notification.No
             String fullMessage) {
         long timeStamp = System.currentTimeMillis();
 
-        // Prepare message using the config template
-        String message = config.prepareNotificationMessage(packageName, title, content, fullMessage, timeStamp);
+        // Use enhanced message preparation if enabled, otherwise use regular template
+        String message = config.prepareEnhancedNotificationMessage(packageName, title, content, fullMessage, timeStamp);
 
         // Create work request for sending webhook
         Constraints constraints = new Constraints.Builder()

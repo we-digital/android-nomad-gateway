@@ -100,6 +100,14 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
     private LinearLayout customTemplateFieldsContainer;
     private List<TemplateFieldPair> customTemplateFields;
 
+    // Enhanced data configuration
+    private MaterialSwitch enhancedDataEnabledSwitch;
+    private LinearLayout enhancedDataOptionsContainer;
+    private MaterialSwitch includeDeviceInfoSwitch;
+    private MaterialSwitch includeSimInfoSwitch;
+    private MaterialSwitch includeNetworkInfoSwitch;
+    private MaterialSwitch includeAppConfigSwitch;
+
     // App data for dropdown
     private List<AppInfo> installedApps;
 
@@ -239,11 +247,22 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         pushVariablesSection = findViewById(R.id.push_variables_section);
         callVariablesSection = findViewById(R.id.call_variables_section);
 
+        // Enhanced data configuration
+        enhancedDataEnabledSwitch = findViewById(R.id.switch_enhanced_data_enabled);
+        enhancedDataOptionsContainer = findViewById(R.id.enhanced_data_options_container);
+        includeDeviceInfoSwitch = findViewById(R.id.switch_include_device_info);
+        includeSimInfoSwitch = findViewById(R.id.switch_include_sim_info);
+        includeNetworkInfoSwitch = findViewById(R.id.switch_include_network_info);
+        includeAppConfigSwitch = findViewById(R.id.switch_include_app_config);
+
         // Setup template variables expand/collapse
         setupTemplateVariablesExpandable();
 
         // Setup variable chip click listeners for copy functionality
         setupVariableChipClickListeners();
+
+        // Setup enhanced data handling
+        setupEnhancedDataHandling();
     }
 
     private void loadConfigData() {
@@ -386,6 +405,14 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         if (config.getActivityType() == ForwardingConfig.ActivityType.SMS && !allSourcesSwitch.isChecked()) {
             parseExistingSmsPhoneNumbers();
         }
+
+        // Load enhanced data configuration
+        enhancedDataEnabledSwitch.setChecked(config.isEnhancedDataEnabled());
+        enhancedDataOptionsContainer.setVisibility(config.isEnhancedDataEnabled() ? View.VISIBLE : View.GONE);
+        includeDeviceInfoSwitch.setChecked(config.isIncludeDeviceInfo());
+        includeSimInfoSwitch.setChecked(config.isIncludeSimInfo());
+        includeNetworkInfoSwitch.setChecked(config.isIncludeNetworkInfo());
+        includeAppConfigSwitch.setChecked(config.isIncludeAppConfig());
     }
 
     private void parseExistingTemplate() {
@@ -680,6 +707,13 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
 
         // Build headers
         config.setHeaders(buildHeaders());
+
+        // Enhanced data configuration
+        config.setEnhancedDataEnabled(enhancedDataEnabledSwitch.isChecked());
+        config.setIncludeDeviceInfo(includeDeviceInfoSwitch.isChecked());
+        config.setIncludeSimInfo(includeSimInfoSwitch.isChecked());
+        config.setIncludeNetworkInfo(includeNetworkInfoSwitch.isChecked());
+        config.setIncludeAppConfig(includeAppConfigSwitch.isChecked());
 
         // Save to preferences
         config.save();
@@ -1268,5 +1302,20 @@ public class ForwardingRuleEditActivity extends AppCompatActivity {
         clipboard.setPrimaryClip(clip);
 
         Toast.makeText(this, "Copied " + text + " to clipboard", Toast.LENGTH_SHORT).show();
+    }
+
+    private void setupEnhancedDataHandling() {
+        // Handle enhanced data master switch
+        enhancedDataEnabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            enhancedDataOptionsContainer.setVisibility(isChecked ? View.VISIBLE : View.GONE);
+
+            // If disabling enhanced data, also disable all sub-options
+            if (!isChecked) {
+                includeDeviceInfoSwitch.setChecked(false);
+                includeSimInfoSwitch.setChecked(false);
+                includeNetworkInfoSwitch.setChecked(false);
+                includeAppConfigSwitch.setChecked(false);
+            }
+        });
     }
 }

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The App Webhooks feature allows you to receive HTTP notifications when specific application events occur. This is useful for monitoring app usage, tracking SIM status changes, and integrating with external systems.
+The App Webhooks feature allows you to receive HTTP notifications when specific application events occur. This includes both dedicated app webhook events and enhanced data for individual forwarding rules.
 
 ## Available Webhook Events
 
@@ -21,20 +21,70 @@ The App Webhooks feature allows you to receive HTTP notifications when specific 
 - **Triggered**: When the SIM card status changes (inserted, removed, ready, locked, etc.)
 - **Use Case**: Track SIM card availability and network connectivity
 
+### 4. Enhanced Forwarding Rules
+- **Events**: `sms_received`, `call_received`, `push_notification_received`
+- **Triggered**: When SMS messages, calls, or push notifications are received (if enhanced data is enabled per rule)
+- **Use Case**: Get comprehensive device and network information with each forwarded message
+
+## Enhanced Data Configuration
+
+The app provides two levels of enhanced data configuration:
+
+### 1. App Webhooks (Global Settings)
+Configure enhanced data for dedicated app webhook events (app start, SIM status changes) in Settings → App Webhooks.
+
+### 2. Per-Rule Enhanced Data (Individual Forwarding Rules)
+Each forwarding rule can have its own enhanced data configuration, providing granular control over what information to include with each specific webhook.
+
+## Per-Rule Enhanced Data Configuration
+
+When creating or editing a forwarding rule, you can configure enhanced data options specifically for that rule:
+
+### Configuration Options
+
+1. **Enable Enhanced Data**: Master switch to enable enhanced data for this rule
+2. **Device Information**: Model, manufacturer, Android version, device name
+3. **SIM Information**: Operator details, network type, dual SIM support, phone numbers
+4. **Network Information**: WiFi details, IP addresses, connectivity status, roaming
+5. **App Configuration**: Service status, rules count, permissions, webhook status
+
+### Benefits of Per-Rule Configuration
+
+- **Granular Control**: Different rules can include different types of enhanced data
+- **Performance Optimization**: Only collect needed data for each specific use case
+- **Privacy Control**: Sensitive information can be limited to specific rules
+- **Bandwidth Efficiency**: Reduce payload size by including only relevant data
+- **Use Case Optimization**: Tailor data collection to specific integration needs
+
 ## Configuration
 
+### App Webhooks Configuration
 1. Open the Android Nomad Gateway app
 2. Go to **Settings** (gear icon in the top right)
 3. Tap **App Webhooks**
 4. Configure each webhook:
    - Toggle the switch to enable/disable the webhook
    - Enter the webhook URL (must start with `http://` or `https://`)
-5. Configure **Enhanced Data Options**:
+5. Configure **Enhanced Data Options** for app webhooks:
    - **Device Information**: Model, manufacturer, Android version
    - **SIM Information**: Operator, country, network type, dual SIM details
    - **Network Information**: IP addresses, WiFi details, connectivity status
    - **App Configuration**: Service status, rules count, permissions
 6. Tap **Save** to apply changes
+
+### Per-Rule Enhanced Data Configuration
+1. Open the Android Nomad Gateway app
+2. Go to **Main Screen** and tap **+** to add a new rule or edit an existing rule
+3. Configure basic rule settings (activity type, sources, webhook URL)
+4. In the **Enhanced Data Configuration** section:
+   - Toggle **Enable Enhanced Data** to activate enhanced data for this rule
+   - Select which types of enhanced data to include:
+     - **Device Information**: Basic device details
+     - **SIM Information**: SIM and network details
+     - **Network Information**: Connectivity and WiFi details
+     - **App Configuration**: App status and configuration
+5. Configure JSON template and other settings as needed
+6. Tap **Save** to create/update the rule
 
 ## Enhanced Data Features
 
@@ -78,11 +128,12 @@ The enhanced webhook features require the following permissions:
 
 ## Webhook Payload Format
 
-All webhooks send a JSON payload with the following structure:
+### App Webhook Events
+App webhook events (app start, SIM status) use the global enhanced data configuration:
 
 ```json
 {
-  "event": "event_type",
+  "event": "app_manual_start|app_auto_start|sim_status_changed",
   "timestamp": 1234567890000,
   "device_id": "Device Model",
   "message": "Human-readable description",
@@ -90,92 +141,134 @@ All webhooks send a JSON payload with the following structure:
     "android_version": "13",
     "app_version": "1.0.0",
     "device_info": {
-      // Enhanced device information (if enabled)
+      // Enhanced device information (if enabled globally)
     }
   }
 }
 ```
 
-### Enhanced Manual Start Payload Example
+### Enhanced Forwarding Rule Events
+Forwarding rule events use per-rule enhanced data configuration:
 
 ```json
 {
-  "event": "app_manual_start",
+  "event": "sms_received|call_received|push_notification_received",
+  "timestamp": 1234567890000,
+  "device_id": "Device Model",
+  "message": "Human-readable description",
+  "data": {
+    // Event-specific data (from, text, contact, etc.)
+    "device_info": {
+      // Enhanced device information (if enabled for this rule)
+    }
+  }
+}
+```
+
+### Enhanced SMS Payload Example (Per-Rule Configuration)
+
+```json
+{
+  "event": "sms_received",
   "timestamp": 1701234567890,
   "device_id": "Pixel 7",
-  "message": "Application started manually by user",
+  "message": "SMS received from +15551234567",
   "data": {
-    "android_version": "13",
-    "app_version": "1.0.0",
+    "from": "+15551234567",
+    "text": "Hello, this is a test message",
+    "sim": "T-Mobile",
+    "sentStamp": 1701234567890,
+    "receivedStamp": 1701234567895,
     "device_info": {
       "device_model": "Pixel 7",
       "device_manufacturer": "Google",
-      "device_brand": "google",
-      "device_product": "cheetah",
-      "android_version": "13",
-      "android_sdk": 33,
-      "device_name": "My Pixel 7",
       "sim_info": {
         "sim_state": "READY",
         "network_operator": "T-Mobile",
-        "sim_operator": "T-Mobile",
-        "network_country": "US",
-        "sim_country": "US",
-        "phone_type": "GSM",
-        "network_type": "LTE",
-        "sim_slots": [
-          {
-            "slot_index": 0,
-            "subscription_id": 1,
-            "display_name": "T-Mobile",
-            "carrier_name": "T-Mobile",
-            "country_iso": "us",
-            "phone_number": "+15551234567"
-          }
-        ]
+        "sim_operator": "T-Mobile"
       },
       "network_info": {
         "is_connected": true,
         "connection_type": "WIFI",
-        "connection_subtype": "",
-        "is_roaming": false,
         "wifi_info": {
           "ssid": "\"MyWiFi\"",
-          "bssid": "aa:bb:cc:dd:ee:ff",
-          "rssi": -45,
-          "link_speed": 866,
-          "frequency": 5180
-        },
-        "ip_addresses": {
-          "primary_ip": "192.168.1.100",
-          "all_addresses": [
-            {
-              "address": "192.168.1.100",
-              "interface": "wlan0",
-              "is_ipv4": true,
-              "is_site_local": true
-            }
-          ]
+          "rssi": -45
         }
       },
       "app_config": {
         "version_name": "1.0.0",
-        "version_code": 1,
-        "package_name": "tech.wdg.incomingactivitygateway",
         "service_running": true,
-        "service_start_count": 5,
-        "forwarding_rules_count": 3,
-        "manual_start_webhook_enabled": true,
-        "auto_start_webhook_enabled": true,
-        "sim_status_webhook_enabled": true,
-        "permissions": {
-          "sms": true,
-          "phone_state": true,
-          "call_log": true,
-          "contacts": true,
-          "wifi_access": true,
-          "notifications": true
-        }
+        "forwarding_rules_count": 3
+      }
+    }
+  }
+}
+```
+
+### Enhanced Call Payload Example (Per-Rule Configuration)
+
+```json
+{
+  "event": "call_received",
+  "timestamp": 1701234567890,
+  "device_id": "Pixel 7",
+  "message": "Incoming call from +15551234567",
+  "data": {
+    "from": "+15551234567",
+    "contact": "John Doe",
+    "timestamp": 1701234567890,
+    "duration": 0,
+    "sim": "T-Mobile",
+    "sentStamp": 1701234567890,
+    "receivedStamp": 1701234567895,
+    "device_info": {
+      "device_model": "Pixel 7",
+      "device_manufacturer": "Google",
+      "sim_info": {
+        "sim_state": "READY",
+        "network_operator": "T-Mobile"
+      },
+      "network_info": {
+        "is_connected": true,
+        "connection_type": "MOBILE"
+      },
+      "app_config": {
+        "version_name": "1.0.0",
+        "service_running": true
+      }
+    }
+  }
+}
+```
+
+### Enhanced Push Notification Payload Example (Per-Rule Configuration)
+
+```json
+{
+  "event": "push_notification_received",
+  "timestamp": 1701234567890,
+  "device_id": "Pixel 7",
+  "message": "Push notification received from com.whatsapp",
+  "data": {
+    "from": "com.whatsapp",
+    "package": "com.whatsapp",
+    "title": "New Message",
+    "content": "You have a new message",
+    "text": "New Message: You have a new message",
+    "sim": "notification",
+    "sentStamp": 1701234567890,
+    "receivedStamp": 1701234567895,
+    "device_info": {
+      "device_model": "Pixel 7",
+      "device_manufacturer": "Google",
+      "network_info": {
+        "is_connected": true,
+        "connection_type": "WIFI"
+      },
+      "app_config": {
+        "version_name": "1.0.0",
+        "service_running": true,
+        "forwarding_rules_count": 5
       }
     }
   }
@@ -287,6 +380,26 @@ app.post('/webhook', (req, res) => {
   console.log(`Received ${event} from ${device_id} at ${new Date(timestamp)}`);
   console.log(`Message: ${message}`);
   
+  // Handle different event types
+  switch(event) {
+    case 'sms_received':
+      console.log(`SMS from ${data.from}: ${data.text}`);
+      break;
+    case 'call_received':
+      console.log(`Call from ${data.from} (${data.contact})`);
+      break;
+    case 'push_notification_received':
+      console.log(`Notification from ${data.package}: ${data.title}`);
+      break;
+    case 'app_manual_start':
+    case 'app_auto_start':
+      console.log(`App started: ${event}`);
+      break;
+    case 'sim_status_changed':
+      console.log(`SIM status: ${data.sim_status}`);
+      break;
+  }
+  
   // Process enhanced device info if available
   if (data.device_info) {
     const deviceInfo = data.device_info;
@@ -318,10 +431,11 @@ app.listen(3000, () => {
 
 ## Integration Ideas
 
-- **Device Fleet Management**: Monitor device status, connectivity, and app health
-- **Network Analytics**: Track WiFi usage patterns and network performance
-- **SIM Management**: Monitor SIM card status across multiple devices
-- **App Usage Analytics**: Analyze user engagement and auto-start reliability
-- **Alert System**: Get notified when devices go offline or encounter issues
-- **Compliance Monitoring**: Track permission status and configuration changes
-- **Performance Monitoring**: Monitor app performance and service reliability 
+- **Unified Device Monitoring**: Monitor all device activity (SMS, calls, notifications, app events) in one place
+- **Enhanced Analytics**: Analyze communication patterns with rich device context
+- **Network Performance Tracking**: Monitor WiFi usage and network performance across all events
+- **Security Monitoring**: Track device access patterns and detect anomalies
+- **Fleet Management**: Comprehensive device status monitoring for enterprise deployments
+- **Compliance Reporting**: Detailed audit trails with device and network context
+- **Performance Optimization**: Identify patterns affecting app performance and reliability
+- **User Behavior Analysis**: Understand how users interact with the device and apps 

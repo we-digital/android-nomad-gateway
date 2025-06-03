@@ -39,8 +39,8 @@ public class CallWebhookWorker extends Worker {
                 return Result.failure();
             }
 
-            // Prepare the call message with SIM info
-            String payload = config.prepareCallMessage(phoneNumber, contactName, simName, timestamp);
+            // Use enhanced message preparation if enabled, otherwise use regular template
+            String payload = config.prepareEnhancedCallMessage(phoneNumber, contactName, simName, timestamp);
 
             // Send the webhook
             Request request = new Request(config.getUrl(), payload);

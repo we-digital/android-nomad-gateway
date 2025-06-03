@@ -55,6 +55,13 @@ public class ForwardingConfig {
     private static final String KEY_IS_NOTIFICATION_ENABLED = "isNotificationEnabled";
     private static final String KEY_ACTIVITY_TYPE = "activityType";
 
+    // Enhanced data configuration keys
+    private static final String KEY_ENHANCED_DATA_ENABLED = "enhancedDataEnabled";
+    private static final String KEY_INCLUDE_DEVICE_INFO = "includeDeviceInfo";
+    private static final String KEY_INCLUDE_SIM_INFO = "includeSimInfo";
+    private static final String KEY_INCLUDE_NETWORK_INFO = "includeNetworkInfo";
+    private static final String KEY_INCLUDE_APP_CONFIG = "includeAppConfig";
+
     public long id;
     public boolean isOn = true;
 
@@ -70,6 +77,13 @@ public class ForwardingConfig {
     public boolean isSmsEnabled = true;
     public boolean isNotificationEnabled;
     public ActivityType activityType = ActivityType.SMS;
+
+    // Enhanced data configuration
+    public boolean enhancedDataEnabled = false;
+    public boolean includeDeviceInfo = false;
+    public boolean includeSimInfo = false;
+    public boolean includeNetworkInfo = false;
+    public boolean includeAppConfig = false;
 
     public ForwardingConfig(Context context) {
         this.context = context;
@@ -172,6 +186,47 @@ public class ForwardingConfig {
         this.activityType = activityType;
     }
 
+    // Enhanced data configuration getters and setters
+    public boolean isEnhancedDataEnabled() {
+        return this.enhancedDataEnabled;
+    }
+
+    public void setEnhancedDataEnabled(boolean enhancedDataEnabled) {
+        this.enhancedDataEnabled = enhancedDataEnabled;
+    }
+
+    public boolean isIncludeDeviceInfo() {
+        return this.includeDeviceInfo;
+    }
+
+    public void setIncludeDeviceInfo(boolean includeDeviceInfo) {
+        this.includeDeviceInfo = includeDeviceInfo;
+    }
+
+    public boolean isIncludeSimInfo() {
+        return this.includeSimInfo;
+    }
+
+    public void setIncludeSimInfo(boolean includeSimInfo) {
+        this.includeSimInfo = includeSimInfo;
+    }
+
+    public boolean isIncludeNetworkInfo() {
+        return this.includeNetworkInfo;
+    }
+
+    public void setIncludeNetworkInfo(boolean includeNetworkInfo) {
+        this.includeNetworkInfo = includeNetworkInfo;
+    }
+
+    public boolean isIncludeAppConfig() {
+        return this.includeAppConfig;
+    }
+
+    public void setIncludeAppConfig(boolean includeAppConfig) {
+        this.includeAppConfig = includeAppConfig;
+    }
+
     public static String getDefaultJsonTemplate() {
         return "{\n  \"from\":\"%from%\",\n  \"text\":\"%text%\",\n  \"sentStamp\":%sentStamp%,\n  \"receivedStamp\":%receivedStamp%,\n  \"sim\":\"%sim%\"\n}";
     }
@@ -204,6 +259,13 @@ public class ForwardingConfig {
             json.put(KEY_IS_NOTIFICATION_ENABLED, this.isNotificationEnabled);
             json.put(KEY_ACTIVITY_TYPE, this.activityType.getValue());
             json.put("isOn", this.isOn);
+
+            // Enhanced data configuration
+            json.put(KEY_ENHANCED_DATA_ENABLED, this.enhancedDataEnabled);
+            json.put(KEY_INCLUDE_DEVICE_INFO, this.includeDeviceInfo);
+            json.put(KEY_INCLUDE_SIM_INFO, this.includeSimInfo);
+            json.put(KEY_INCLUDE_NETWORK_INFO, this.includeNetworkInfo);
+            json.put(KEY_INCLUDE_APP_CONFIG, this.includeAppConfig);
 
             SharedPreferences.Editor editor = getEditor(context);
             editor.putString(this.getKey(), json.toString());
@@ -282,6 +344,23 @@ public class ForwardingConfig {
                         config.activityType = ActivityType.fromString(json.getString(KEY_ACTIVITY_TYPE));
                     }
 
+                    // Load enhanced data configuration
+                    if (json.has(KEY_ENHANCED_DATA_ENABLED)) {
+                        config.enhancedDataEnabled = json.getBoolean(KEY_ENHANCED_DATA_ENABLED);
+                    }
+                    if (json.has(KEY_INCLUDE_DEVICE_INFO)) {
+                        config.includeDeviceInfo = json.getBoolean(KEY_INCLUDE_DEVICE_INFO);
+                    }
+                    if (json.has(KEY_INCLUDE_SIM_INFO)) {
+                        config.includeSimInfo = json.getBoolean(KEY_INCLUDE_SIM_INFO);
+                    }
+                    if (json.has(KEY_INCLUDE_NETWORK_INFO)) {
+                        config.includeNetworkInfo = json.getBoolean(KEY_INCLUDE_NETWORK_INFO);
+                    }
+                    if (json.has(KEY_INCLUDE_APP_CONFIG)) {
+                        config.includeAppConfig = json.getBoolean(KEY_INCLUDE_APP_CONFIG);
+                    }
+
                     config.id = config.getKey().hashCode();
                 } catch (JSONException e) {
                     Log.e("ForwardingConfig", e.getMessage());
@@ -317,6 +396,40 @@ public class ForwardingConfig {
         return template;
     }
 
+    /**
+     * Enhanced SMS message preparation with optional device information
+     */
+    public String prepareEnhancedMessage(String from, String text, String sim, long timeStamp) {
+        // Check if enhanced data is enabled for this specific rule
+        if (this.enhancedDataEnabled) {
+            try {
+                // Create enhanced payload using WebhookSender
+                WebhookPayload payload = new WebhookPayload();
+                payload.event = "sms_received";
+                payload.timestamp = timeStamp;
+                payload.deviceId = android.os.Build.MODEL;
+                payload.message = "SMS received from " + from;
+
+                // Add SMS-specific data
+                payload.addData("from", from);
+                payload.addData("text", text);
+                payload.addData("sim", sim);
+                payload.addData("sentStamp", timeStamp);
+                payload.addData("receivedStamp", System.currentTimeMillis());
+
+                // Add enhanced device information based on rule configuration
+                addEnhancedDeviceInfoForRule(payload);
+
+                return payload.toJson().toString();
+            } catch (Exception e) {
+                Log.e("ForwardingConfig", "Error creating enhanced SMS payload, falling back to template", e);
+            }
+        }
+
+        // Fallback to regular template
+        return prepareMessage(from, text, sim, timeStamp);
+    }
+
     public String prepareNotificationMessage(String packageName, String title, String content, String fullMessage,
             long timeStamp) {
         String template = this.getJsonTemplate();
@@ -332,6 +445,44 @@ public class ForwardingConfig {
         template = template.replace("%sim%", "notification"); // For notifications, sim is always "notification"
 
         return template;
+    }
+
+    /**
+     * Enhanced notification message preparation with optional device information
+     */
+    public String prepareEnhancedNotificationMessage(String packageName, String title, String content,
+            String fullMessage, long timeStamp) {
+        // Check if enhanced data is enabled for this specific rule
+        if (this.enhancedDataEnabled) {
+            try {
+                // Create enhanced payload using WebhookSender
+                WebhookPayload payload = new WebhookPayload();
+                payload.event = "push_notification_received";
+                payload.timestamp = timeStamp;
+                payload.deviceId = android.os.Build.MODEL;
+                payload.message = "Push notification received from " + packageName;
+
+                // Add notification-specific data
+                payload.addData("from", packageName);
+                payload.addData("package", packageName);
+                payload.addData("title", title != null ? title : "");
+                payload.addData("content", content != null ? content : "");
+                payload.addData("text", fullMessage);
+                payload.addData("sentStamp", timeStamp);
+                payload.addData("receivedStamp", System.currentTimeMillis());
+                payload.addData("sim", "notification");
+
+                // Add enhanced device information based on rule configuration
+                addEnhancedDeviceInfoForRule(payload);
+
+                return payload.toJson().toString();
+            } catch (Exception e) {
+                Log.e("ForwardingConfig", "Error creating enhanced notification payload, falling back to template", e);
+            }
+        }
+
+        // Fallback to regular template
+        return prepareNotificationMessage(packageName, title, content, fullMessage, timeStamp);
     }
 
     public String prepareCallMessage(String phoneNumber, String contactName, long timeStamp) {
@@ -362,6 +513,92 @@ public class ForwardingConfig {
         template = template.replace("%sim%", simName != null ? simName : "undetected");
 
         return template;
+    }
+
+    /**
+     * Enhanced call message preparation with optional device information
+     */
+    public String prepareEnhancedCallMessage(String phoneNumber, String contactName, String simName, long timeStamp) {
+        // Check if enhanced data is enabled for this specific rule
+        if (this.enhancedDataEnabled) {
+            try {
+                // Create enhanced payload using WebhookSender
+                WebhookPayload payload = new WebhookPayload();
+                payload.event = "call_received";
+                payload.timestamp = timeStamp;
+                payload.deviceId = android.os.Build.MODEL;
+                payload.message = "Incoming call from " + phoneNumber;
+
+                // Add call-specific data
+                payload.addData("from", phoneNumber);
+                payload.addData("contact", contactName != null ? contactName : "Unknown");
+                payload.addData("timestamp", timeStamp);
+                payload.addData("duration", 0); // Duration is 0 for incoming calls
+                payload.addData("sentStamp", timeStamp);
+                payload.addData("receivedStamp", System.currentTimeMillis());
+                payload.addData("sim", simName != null ? simName : "undetected");
+
+                // Add enhanced device information based on rule configuration
+                addEnhancedDeviceInfoForRule(payload);
+
+                return payload.toJson().toString();
+            } catch (Exception e) {
+                Log.e("ForwardingConfig", "Error creating enhanced call payload, falling back to template", e);
+            }
+        }
+
+        // Fallback to regular template
+        return prepareCallMessage(phoneNumber, contactName, simName, timeStamp);
+    }
+
+    /**
+     * Add enhanced device information to payload based on this rule's preferences
+     */
+    private void addEnhancedDeviceInfoForRule(WebhookPayload payload) {
+        try {
+            JSONObject deviceInfo = DeviceInfoCollector.collectDeviceInfo(context);
+
+            // Filter device info based on this rule's preferences
+            JSONObject filteredDeviceInfo = new JSONObject();
+
+            if (this.includeDeviceInfo) {
+                // Add basic device information
+                if (deviceInfo.has("device_model"))
+                    filteredDeviceInfo.put("device_model", deviceInfo.get("device_model"));
+                if (deviceInfo.has("device_manufacturer"))
+                    filteredDeviceInfo.put("device_manufacturer", deviceInfo.get("device_manufacturer"));
+                if (deviceInfo.has("device_brand"))
+                    filteredDeviceInfo.put("device_brand", deviceInfo.get("device_brand"));
+                if (deviceInfo.has("device_product"))
+                    filteredDeviceInfo.put("device_product", deviceInfo.get("device_product"));
+                if (deviceInfo.has("android_version"))
+                    filteredDeviceInfo.put("android_version", deviceInfo.get("android_version"));
+                if (deviceInfo.has("android_sdk"))
+                    filteredDeviceInfo.put("android_sdk", deviceInfo.get("android_sdk"));
+                if (deviceInfo.has("device_name"))
+                    filteredDeviceInfo.put("device_name", deviceInfo.get("device_name"));
+            }
+
+            if (this.includeSimInfo && deviceInfo.has("sim_info")) {
+                filteredDeviceInfo.put("sim_info", deviceInfo.get("sim_info"));
+            }
+
+            if (this.includeNetworkInfo && deviceInfo.has("network_info")) {
+                filteredDeviceInfo.put("network_info", deviceInfo.get("network_info"));
+            }
+
+            if (this.includeAppConfig && deviceInfo.has("app_config")) {
+                filteredDeviceInfo.put("app_config", deviceInfo.get("app_config"));
+            }
+
+            // Only add device_info if there's something to include
+            if (filteredDeviceInfo.length() > 0) {
+                payload.addData("device_info", filteredDeviceInfo);
+            }
+
+        } catch (Exception e) {
+            Log.e("ForwardingConfig", "Error adding enhanced device info for rule", e);
+        }
     }
 
     private static SharedPreferences getPreference(Context context) {

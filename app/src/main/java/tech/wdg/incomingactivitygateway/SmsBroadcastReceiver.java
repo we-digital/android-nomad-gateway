@@ -96,7 +96,8 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
     protected void callWebHook(ForwardingConfig config, String sender, String slotName,
             String content, long timeStamp) {
 
-        String message = config.prepareMessage(sender, content, slotName, timeStamp);
+        // Use enhanced message preparation if enabled, otherwise use regular template
+        String message = config.prepareEnhancedMessage(sender, content, slotName, timeStamp);
 
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
