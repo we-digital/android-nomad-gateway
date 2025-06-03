@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -253,15 +254,36 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void updateServiceStatus() {
         boolean isRunning = isServiceRunning();
+        int startCount = SmsReceiverService.getServiceStartCount(this);
+
         if (isRunning) {
             chipServiceStatus.setText("Active");
             chipServiceStatus.setChipIconResource(R.drawable.ic_check_circle);
-            serviceStatusText.setText("Service is running and monitoring messages");
+            serviceStatusText.setText("Service is running and monitoring messages • Started " + startCount + " times");
         } else {
             chipServiceStatus.setText("Inactive");
             chipServiceStatus.setChipIconResource(R.drawable.ic_error);
             serviceStatusText.setText("Service is not running");
         }
+
+        // Check battery optimization status
+        checkBatteryOptimization();
+    }
+
+    private void checkBatteryOptimization() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isIgnoringBatteryOptimizations(getPackageName())) {
+                // Show warning about battery optimization
+                showBatteryOptimizationWarning();
+            }
+        }
+    }
+
+    private void showBatteryOptimizationWarning() {
+        // You can add a warning message or button to guide users to disable battery
+        // optimization
+        Log.w(TAG, "Battery optimization is enabled - this may affect background operation");
     }
 
     private void updateAllPermissionStatus() {

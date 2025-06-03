@@ -267,6 +267,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     private void initializeApp() {
         context = this;
 
+        // Log background operation status for debugging
+        BackgroundOperationManager.logBackgroundOperationStatus(this);
+
         // Initialize adapter with empty list initially
         adapter = new ForwardingRulesAdapter(this, new ArrayList<>(), this);
         recyclerView.setAdapter(adapter);
@@ -301,6 +304,9 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         if (!isServiceRunning()) {
             startService();
         }
+
+        // Check and show background operation guidance if needed
+        checkBackgroundOperationGuidance();
     }
 
     @Override
@@ -347,25 +353,33 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private boolean isServiceRunning() {
-        // Modern approach: Check if service is running by trying to bind to it
-        // or use a shared preference to track service state
+        // First check if service is expected to be running
+        boolean expectedToRun = SmsReceiverService.isServiceExpectedToRun(this);
+
+        // Then check if it's actually running
         try {
             ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
             if (manager != null) {
                 // For API 26+, getRunningServices is limited to own services only
                 // This is actually fine for our use case since we're checking our own service
                 for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-                    if (tech.wdg.incomingactivitygateway.SmsReceiverService.class.getName()
+                    if (SmsReceiverService.class.getName()
                             .equals(service.service.getClassName())) {
                         return true;
                     }
                 }
             }
         } catch (Exception e) {
-            // Fallback: check if service was started via shared preferences
-            SharedPreferences prefs = getSharedPreferences("service_state", MODE_PRIVATE);
-            return prefs.getBoolean("service_running", false);
+            Log.w(TAG, "Error checking service status via ActivityManager", e);
         }
+
+        // If service is expected to run but not actually running, try to restart it
+        if (expectedToRun) {
+            Log.w(TAG, "Service expected to run but not found - attempting restart");
+            startService();
+            return false; // Return false for now, will be true after restart
+        }
+
         return false;
     }
 
@@ -373,10 +387,22 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         Context appContext = getApplicationContext();
         Intent intent = new Intent(this, SmsReceiverService.class);
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            appContext.startForegroundService(intent);
-        } else {
-            appContext.startService(intent);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                appContext.startForegroundService(intent);
+            } else {
+                appContext.startService(intent);
+            }
+            Log.d(TAG, "Service start requested");
+
+            // Update status after a short delay to allow service to start
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                updateServiceStatus();
+            }, 1000);
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to start service", e);
+            showInfo("Failed to start background service: " + e.getMessage());
         }
     }
 
@@ -530,5 +556,29 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             // Update empty state based on filtered results
             updateEmptyState(adapter.getItemCount());
         });
+    }
+
+    private void checkBackgroundOperationGuidance() {
+        // Show guidance if battery optimization is enabled
+        if (!BackgroundOperationManager.isBatteryOptimizationDisabled(this)) {
+            showBackgroundOperationGuidance();
+        }
+    }
+
+    private void showBackgroundOperationGuidance() {
+        String recommendations = BackgroundOperationManager.getBackgroundOperationRecommendations(this);
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle("Background Operation Setup")
+                .setMessage("To ensure reliable message forwarding, please configure your device settings:\n\n"
+                        + recommendations)
+                .setPositiveButton("Open Settings", (dialog, which) -> {
+                    BackgroundOperationManager.openBatteryOptimizationSettings(this);
+                })
+                .setNegativeButton("Later", null)
+                .setNeutralButton("App Settings", (dialog, which) -> {
+                    BackgroundOperationManager.openAppSettings(this);
+                })
+                .show();
     }
 }
