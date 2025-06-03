@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_CALL_LOG,
             Manifest.permission.READ_CONTACTS,
-            Manifest.permission.READ_PHONE_NUMBERS
+            Manifest.permission.READ_PHONE_NUMBERS,
+            Manifest.permission.ACCESS_WIFI_STATE
     };
 
     // Additional permissions for Android 14+
@@ -222,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
         message.append("• Call Log - To detect incoming calls\n");
         message.append("• Contacts - To resolve phone numbers to names\n");
         message.append("• Phone Numbers - To identify your phone numbers\n");
+        message.append("• WiFi Access - To collect network information for webhooks\n");
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             message.append("• Notifications - To show service status\n");

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -133,11 +134,18 @@ public class WebhookSender {
                 : "Application started automatically";
 
         try {
+            // Basic app info
             payload.addData("android_version", android.os.Build.VERSION.RELEASE);
             payload.addData("app_version", context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), 0).versionName);
+
+            // Enhanced device information (if enabled)
+            if (AppWebhooksActivity.isEnhancedDataEnabled(context)) {
+                addEnhancedDeviceInfo(context, payload);
+            }
+
         } catch (Exception e) {
-            Log.e(TAG, "Error adding app info to payload", e);
+            Log.e(TAG, "Error adding enhanced info to app start payload", e);
         }
 
         return payload;
@@ -157,10 +165,82 @@ public class WebhookSender {
             payload.addData("sim_status", simStatus);
             payload.addData("operator", operator);
             payload.addData("android_version", android.os.Build.VERSION.RELEASE);
+
+            // Enhanced device information (if enabled)
+            if (AppWebhooksActivity.isEnhancedDataEnabled(context)) {
+                addEnhancedDeviceInfo(context, payload);
+            }
+
         } catch (JSONException e) {
-            Log.e(TAG, "Error adding SIM info to payload", e);
+            Log.e(TAG, "Error adding enhanced info to SIM status payload", e);
         }
 
         return payload;
+    }
+
+    /**
+     * Create a webhook payload with enhanced device information
+     */
+    public static WebhookPayload createEnhancedPayload(Context context, String event, String message) {
+        WebhookPayload payload = new WebhookPayload();
+        payload.event = event;
+        payload.timestamp = System.currentTimeMillis();
+        payload.deviceId = android.os.Build.MODEL;
+        payload.message = message;
+
+        try {
+            // Enhanced device information (always included for this method)
+            addEnhancedDeviceInfo(context, payload);
+
+        } catch (JSONException e) {
+            Log.e(TAG, "Error adding enhanced info to payload", e);
+        }
+
+        return payload;
+    }
+
+    /**
+     * Add enhanced device information based on user preferences
+     */
+    private static void addEnhancedDeviceInfo(Context context, WebhookPayload payload) throws JSONException {
+        JSONObject deviceInfo = DeviceInfoCollector.collectDeviceInfo(context);
+
+        // Filter device info based on user preferences
+        JSONObject filteredDeviceInfo = new JSONObject();
+
+        if (AppWebhooksActivity.isDeviceInfoEnabled(context)) {
+            // Add basic device information
+            if (deviceInfo.has("device_model"))
+                filteredDeviceInfo.put("device_model", deviceInfo.get("device_model"));
+            if (deviceInfo.has("device_manufacturer"))
+                filteredDeviceInfo.put("device_manufacturer", deviceInfo.get("device_manufacturer"));
+            if (deviceInfo.has("device_brand"))
+                filteredDeviceInfo.put("device_brand", deviceInfo.get("device_brand"));
+            if (deviceInfo.has("device_product"))
+                filteredDeviceInfo.put("device_product", deviceInfo.get("device_product"));
+            if (deviceInfo.has("android_version"))
+                filteredDeviceInfo.put("android_version", deviceInfo.get("android_version"));
+            if (deviceInfo.has("android_sdk"))
+                filteredDeviceInfo.put("android_sdk", deviceInfo.get("android_sdk"));
+            if (deviceInfo.has("device_name"))
+                filteredDeviceInfo.put("device_name", deviceInfo.get("device_name"));
+        }
+
+        if (AppWebhooksActivity.isSimInfoEnabled(context) && deviceInfo.has("sim_info")) {
+            filteredDeviceInfo.put("sim_info", deviceInfo.get("sim_info"));
+        }
+
+        if (AppWebhooksActivity.isNetworkInfoEnabled(context) && deviceInfo.has("network_info")) {
+            filteredDeviceInfo.put("network_info", deviceInfo.get("network_info"));
+        }
+
+        if (AppWebhooksActivity.isAppConfigEnabled(context) && deviceInfo.has("app_config")) {
+            filteredDeviceInfo.put("app_config", deviceInfo.get("app_config"));
+        }
+
+        // Only add device_info if there's something to include
+        if (filteredDeviceInfo.length() > 0) {
+            payload.addData("device_info", filteredDeviceInfo);
+        }
     }
 }

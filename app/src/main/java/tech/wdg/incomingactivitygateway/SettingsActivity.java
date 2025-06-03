@@ -54,6 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
     private Chip chipPhoneNumbersPermission;
     private Chip chipNotificationsPermission;
     private Chip chipNotificationListenerPermission;
+    private Chip chipWifiPermission;
 
     private MaterialButton btnRefreshLogs;
     private MaterialButton btnClearLogs;
@@ -106,6 +107,7 @@ public class SettingsActivity extends AppCompatActivity {
         chipPhoneNumbersPermission = findViewById(R.id.chip_phone_numbers_permission);
         chipNotificationsPermission = findViewById(R.id.chip_notifications_permission);
         chipNotificationListenerPermission = findViewById(R.id.chip_notification_listener_permission);
+        chipWifiPermission = findViewById(R.id.chip_wifi_permission);
 
         btnRefreshLogs = findViewById(R.id.btn_refresh_logs);
         btnClearLogs = findViewById(R.id.btn_clear_logs);
@@ -127,6 +129,7 @@ public class SettingsActivity extends AppCompatActivity {
         chipCallLogPermission.setOnClickListener(v -> openAppSettings());
         chipContactsPermission.setOnClickListener(v -> openAppSettings());
         chipPhoneNumbersPermission.setOnClickListener(v -> openAppSettings());
+        chipWifiPermission.setOnClickListener(v -> openAppSettings());
         chipNotificationsPermission.setOnClickListener(v -> openAppSettings());
         chipNotificationListenerPermission.setOnClickListener(v -> openNotificationListenerSettings());
     }
@@ -315,6 +318,11 @@ public class SettingsActivity extends AppCompatActivity {
                 ContextCompat.checkSelfPermission(this,
                         Manifest.permission.READ_PHONE_NUMBERS) == PackageManager.PERMISSION_GRANTED);
 
+        // WiFi Access Permission
+        updatePermissionChip(chipWifiPermission,
+                ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.ACCESS_WIFI_STATE) == PackageManager.PERMISSION_GRANTED);
+
         // Notifications Permission (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             updatePermissionChip(chipNotificationsPermission,
@@ -403,6 +411,7 @@ public class SettingsActivity extends AppCompatActivity {
         chipPhoneNumbersPermission = null;
         chipNotificationsPermission = null;
         chipNotificationListenerPermission = null;
+        chipWifiPermission = null;
         btnRefreshLogs = null;
         btnClearLogs = null;
         btnCopyLogs = null;

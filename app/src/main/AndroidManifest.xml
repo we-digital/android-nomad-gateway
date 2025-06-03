@@ -5,6 +5,7 @@
     <!-- Network permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     
     <!-- SMS and phone permissions -->
     <uses-permission android:name="android.permission.RECEIVE_SMS" />

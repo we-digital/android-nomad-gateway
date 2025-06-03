@@ -30,6 +30,12 @@ public class AppWebhooksActivity extends AppCompatActivity {
     private static final String KEY_SIM_STATUS_ENABLED = "sim_status_enabled";
     private static final String KEY_SIM_STATUS_URL = "sim_status_url";
 
+    // Enhanced data preference keys
+    private static final String KEY_INCLUDE_DEVICE_INFO = "include_device_info";
+    private static final String KEY_INCLUDE_SIM_INFO = "include_sim_info";
+    private static final String KEY_INCLUDE_NETWORK_INFO = "include_network_info";
+    private static final String KEY_INCLUDE_APP_CONFIG = "include_app_config";
+
     // UI components
     private SwitchMaterial switchManualStart;
     private TextInputLayout tilManualStartUrl;
@@ -42,6 +48,12 @@ public class AppWebhooksActivity extends AppCompatActivity {
     private SwitchMaterial switchSimStatus;
     private TextInputLayout tilSimStatusUrl;
     private TextInputEditText etSimStatusUrl;
+
+    // Enhanced data switches
+    private SwitchMaterial switchIncludeDeviceInfo;
+    private SwitchMaterial switchIncludeSimInfo;
+    private SwitchMaterial switchIncludeNetworkInfo;
+    private SwitchMaterial switchIncludeAppConfig;
 
     private MaterialButton btnSave;
     private MaterialButton btnTestWebhooks;
@@ -93,6 +105,12 @@ public class AppWebhooksActivity extends AppCompatActivity {
         tilSimStatusUrl = findViewById(R.id.til_sim_status_url);
         etSimStatusUrl = findViewById(R.id.et_sim_status_url);
 
+        // Enhanced data switches
+        switchIncludeDeviceInfo = findViewById(R.id.switch_include_device_info);
+        switchIncludeSimInfo = findViewById(R.id.switch_include_sim_info);
+        switchIncludeNetworkInfo = findViewById(R.id.switch_include_network_info);
+        switchIncludeAppConfig = findViewById(R.id.switch_include_app_config);
+
         // Buttons
         btnSave = findViewById(R.id.btn_save);
         btnTestWebhooks = findViewById(R.id.btn_test_webhooks);
@@ -113,6 +131,12 @@ public class AppWebhooksActivity extends AppCompatActivity {
         switchSimStatus.setChecked(preferences.getBoolean(KEY_SIM_STATUS_ENABLED, false));
         etSimStatusUrl.setText(preferences.getString(KEY_SIM_STATUS_URL, ""));
         tilSimStatusUrl.setEnabled(switchSimStatus.isChecked());
+
+        // Enhanced data options (default to true for better user experience)
+        switchIncludeDeviceInfo.setChecked(preferences.getBoolean(KEY_INCLUDE_DEVICE_INFO, true));
+        switchIncludeSimInfo.setChecked(preferences.getBoolean(KEY_INCLUDE_SIM_INFO, true));
+        switchIncludeNetworkInfo.setChecked(preferences.getBoolean(KEY_INCLUDE_NETWORK_INFO, true));
+        switchIncludeAppConfig.setChecked(preferences.getBoolean(KEY_INCLUDE_APP_CONFIG, true));
     }
 
     private void setupListeners() {
@@ -161,6 +185,12 @@ public class AppWebhooksActivity extends AppCompatActivity {
         // Save SIM status webhook
         editor.putBoolean(KEY_SIM_STATUS_ENABLED, switchSimStatus.isChecked());
         editor.putString(KEY_SIM_STATUS_URL, etSimStatusUrl.getText().toString().trim());
+
+        // Save enhanced data options
+        editor.putBoolean(KEY_INCLUDE_DEVICE_INFO, switchIncludeDeviceInfo.isChecked());
+        editor.putBoolean(KEY_INCLUDE_SIM_INFO, switchIncludeSimInfo.isChecked());
+        editor.putBoolean(KEY_INCLUDE_NETWORK_INFO, switchIncludeNetworkInfo.isChecked());
+        editor.putBoolean(KEY_INCLUDE_APP_CONFIG, switchIncludeAppConfig.isChecked());
 
         editor.apply();
 
@@ -251,12 +281,20 @@ public class AppWebhooksActivity extends AppCompatActivity {
     }
 
     private void testWebhook(String type, String url) {
-        // Create test payload
-        WebhookPayload payload = new WebhookPayload();
-        payload.event = "test_" + type.toLowerCase().replace(" ", "_");
-        payload.timestamp = System.currentTimeMillis();
-        payload.deviceId = android.os.Build.MODEL;
-        payload.message = "Test webhook for " + type;
+        // Create test payload with enhanced data if enabled
+        WebhookPayload payload;
+
+        if (isEnhancedDataEnabled()) {
+            payload = WebhookSender.createEnhancedPayload(this,
+                    "test_" + type.toLowerCase().replace(" ", "_"),
+                    "Test webhook for " + type);
+        } else {
+            payload = new WebhookPayload();
+            payload.event = "test_" + type.toLowerCase().replace(" ", "_");
+            payload.timestamp = System.currentTimeMillis();
+            payload.deviceId = android.os.Build.MODEL;
+            payload.message = "Test webhook for " + type;
+        }
 
         // Send webhook
         WebhookSender.sendWebhook(this, url, payload, new WebhookSender.WebhookCallback() {
@@ -276,6 +314,16 @@ public class AppWebhooksActivity extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    /**
+     * Check if any enhanced data options are enabled
+     */
+    private boolean isEnhancedDataEnabled() {
+        return switchIncludeDeviceInfo.isChecked() ||
+                switchIncludeSimInfo.isChecked() ||
+                switchIncludeNetworkInfo.isChecked() ||
+                switchIncludeAppConfig.isChecked();
     }
 
     @Override
@@ -316,5 +364,33 @@ public class AppWebhooksActivity extends AppCompatActivity {
     public static String getSimStatusWebhookUrl(android.content.Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
         return prefs.getString(KEY_SIM_STATUS_URL, "");
+    }
+
+    // Enhanced data configuration methods
+    public static boolean isDeviceInfoEnabled(android.content.Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_INCLUDE_DEVICE_INFO, true);
+    }
+
+    public static boolean isSimInfoEnabled(android.content.Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_INCLUDE_SIM_INFO, true);
+    }
+
+    public static boolean isNetworkInfoEnabled(android.content.Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_INCLUDE_NETWORK_INFO, true);
+    }
+
+    public static boolean isAppConfigEnabled(android.content.Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+        return prefs.getBoolean(KEY_INCLUDE_APP_CONFIG, true);
+    }
+
+    public static boolean isEnhancedDataEnabled(android.content.Context context) {
+        return isDeviceInfoEnabled(context) ||
+                isSimInfoEnabled(context) ||
+                isNetworkInfoEnabled(context) ||
+                isAppConfigEnabled(context);
     }
 }
