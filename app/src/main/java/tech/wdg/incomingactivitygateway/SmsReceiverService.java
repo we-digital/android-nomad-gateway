@@ -180,10 +180,38 @@ public class SmsReceiverService extends Service {
      */
     private void startForegroundWithNotification() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification notification = createServiceNotification();
-            startForeground(NOTIFICATION_ID, notification);
-            Log.d(TAG, "Started foreground service with notification");
+            try {
+                Notification notification = createServiceNotification();
+                startForeground(NOTIFICATION_ID, notification);
+                Log.d(TAG, "Started foreground service with notification");
+            } catch (SecurityException e) {
+                Log.e(TAG, "Failed to start foreground service - permission denied", e);
+                // Try to handle the permission issue gracefully
+                handleForegroundServicePermissionDenied();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start foreground service", e);
+            }
         }
+    }
+
+    /**
+     * Handles foreground service permission denied scenario
+     */
+    private void handleForegroundServicePermissionDenied() {
+        Log.w(TAG, "Foreground service permission denied - service may be killed by system");
+
+        // Update service state to indicate permission issue
+        servicePrefs.edit()
+                .putBoolean(KEY_SERVICE_RUNNING, false)
+                .putString("permission_error", "FOREGROUND_SERVICE_DENIED")
+                .putLong("last_error", System.currentTimeMillis())
+                .apply();
+
+        // Try to restart the service after a delay
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            Log.d(TAG, "Attempting to restart service after permission error");
+            ServiceRestartReceiver.triggerServiceRestart(getApplicationContext());
+        }, 5000); // 5 second delay
     }
 
     /**

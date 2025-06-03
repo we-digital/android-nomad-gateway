@@ -77,6 +77,12 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             Manifest.permission.READ_PHONE_NUMBERS
     };
 
+    // Additional permissions for Android 14+
+    private static final String[] ANDROID_14_PERMISSIONS = {
+            "android.permission.FOREGROUND_SERVICE_DATA_SYNC",
+            "android.permission.FOREGROUND_SERVICE_SPECIAL_USE"
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // Enable shared element transitions
@@ -144,6 +150,15 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
             }
         }
 
+        // Add foreground service permissions for Android 14+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            for (String permission : ANDROID_14_PERMISSIONS) {
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsToRequest.add(permission);
+                }
+            }
+        }
+
         if (!permissionsToRequest.isEmpty()) {
             // Show explanation dialog before requesting permissions
             showPermissionExplanationDialog(permissionsToRequest);
@@ -197,19 +212,27 @@ public class MainActivity extends AppCompatActivity implements ForwardingRulesAd
     }
 
     private void showPermissionExplanationDialog(List<String> permissionsToRequest) {
+        StringBuilder message = new StringBuilder();
+        message.append("Activity Gateway needs several permissions to function properly:\n\n");
+        message.append("• SMS Access - To receive and forward SMS messages\n");
+        message.append("• Phone State - To identify SIM cards and monitor calls\n");
+        message.append("• Call Log - To detect incoming calls\n");
+        message.append("• Contacts - To resolve phone numbers to names\n");
+        message.append("• Phone Numbers - To identify your phone numbers\n");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            message.append("• Notifications - To show service status\n");
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            message.append("• Foreground Service - To run reliably in background\n");
+        }
+
+        message.append("\nYou can review and manage these permissions anytime in Settings.");
+
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Permissions Required")
-                .setMessage("Activity Gateway needs several permissions to function properly:\n\n" +
-                        "• SMS Access - To receive and forward SMS messages\n" +
-                        "• Phone State - To identify SIM cards and monitor calls\n" +
-                        "• Call Log - To detect incoming calls\n" +
-                        "• Contacts - To resolve phone numbers to names\n" +
-                        "• Phone Numbers - To identify your phone numbers\n" +
-                        (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                                ? "• Notifications - To show service status\n"
-                                : "")
-                        +
-                        "\nYou can review and manage these permissions anytime in Settings.")
+                .setMessage(message.toString())
                 .setPositiveButton("Grant Permissions", (dialog, which) -> {
                     requestPermissions(permissionsToRequest);
                 })
